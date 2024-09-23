@@ -1,0 +1,1374 @@
+
+    VNFS.TXT
+
+    NG-V Native File System (NG-VNFS) Version 1.3 NG 0.4 Specification
+
+    Last Update: Sep 30th, 2007 - Sunday
+
+    Copyright (C) 2004-2007 RedStar Technologies
+    Written and Designed by J. Palencia (zipox@ureach.com)
+
+     Ö  Ö     ÖÒ¿   ÖÄ·   ÖÄ·   Ö Ö   Ö· Ö   ÖÄÒ   Ò     ÖÄÒ   ÖÄ½   · Ö
+     Ó·Ö½  ÄÄ  º    ÇÄ    º     ÇÄ¶   ºÓ·º   º º   º     º º   ºÄ·   ÓÒ½
+      Ó½       Ó    ÓÄ½   ÓÄ½   ½ ½   ½ Ó½   ĞÄ½   ÓÄ½   ĞÄ½   ÓÄ½    Ó
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    Contents
+
+         1.0 - Version History
+
+         2.0 - Higherblock
+             2.1 - Format of the Higher Block
+             2.2 - Determining sectrsPerCell and dirCacheSize
+             2.3 - Determining the Encryption Algorithm
+                 2.3.1 - List of Official Encryption Algorithms
+             2.4 - Encryption Algorithm Standard
+             2.5 - VNFS/LSD Hash Function
+
+         3.0 - Cell Registry
+             3.1 - Format of a Registry Cell
+             3.2 - Brief Explanation of the Cell Registry
+                 3.2.1 - Meta Registry Cells
+             3.3 - User Registry
+             3.4 - Format of the User Registry Header
+             3.5 - Format of an User Registry Entry
+             3.6 - Registry Based File System Objects
+
+         4.0 - Metablock
+             4.1 - Allowed Values for Meta Entries
+             4.2 - Metablock State Structure (MBSS)
+
+         5.0 - Directory Control Block
+             5.1 - Format of the Directory Control Block
+             5.2 - Format of a Directory Entry
+
+         6.0 - Symbol Table
+             6.1 - Symbol Table Header Format
+             6.2 - Format of a Symbol Table Entry
+             6.3 - Format of a Symbol Table Entry Post-Mortem
+
+         7.0 - Inode Table
+             7.1 - Inode Entry Format
+             7.2 - File Type (Attributes, Access Rights and Properties) and X-Type
+             7.3 - Deleting a File
+
+         8.0 - Multiple File System Support Standard
+             8.1 - Not Allowed ISO Latin-1 Characters
+
+         9.0 - Formulas
+             9.1 - Conversion Formulas
+             9.2 - Formulas to get Higherblock Fields
+
+         A.0 - Drafts of the Official Encryption Algorithms
+             A.0.1 - "Mercury" by J. Palencia (zipox@ureach.com)
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 1.0 - Version History
+
+    Version 0.1 to 0.3 (Nothing really changed back then... some bugs fixed).
+        * Higherblock (1K)
+        * 15 Virtual Units
+        * HigherInfo Block (1K)
+        * Metablock (32-bits entries)
+        * Inode Table (32 bytes entries)
+        * Directory (64 bytes entries)
+        * Directory Header 32 bytes
+        * Directory total entries limited to 65,535.
+
+    Version 0.4
+        * HigherInfo Block Obsolete
+        * Inode Bitmap Shrinked (1-bit entries).
+
+    Version 0.5
+        * NewGeneration 0.1
+        * Higherblock now 0.5K
+        * No Virtual Units
+        * Metablock entries now 1 bit long, for scanning only, not linking.
+        * Inode Bitmap killed
+        * Inode Table now 64 byte entries
+        * V-CRC Implemented
+        * Directory entries now 8 bytes long
+        * Directory Header 8 bytes long
+        * Directory total entries now dynamic, ranging from 4096 to 65536.
+        * High level protection mechanism implemented.
+
+    Version 0.6
+        * NewGeneration 0.1.1
+        * Implementation of a sub protection mechanism using a secondary
+          keyword, located in the inode to raise the level of security.
+        * New MetaBlock, now expanded to 1-byte entries which values are also
+          called "cell descriptors" ranging from 0x00 to 0xF7.
+
+    Version 0.7
+        * NewGeneration 0.2
+        * Higherblock modified, entries from 0x4A to 0x60.
+        * Cell Registry Implemented
+        * Directory Header now 24 bytes long.
+        * Directory cache implemented for high-speed V-CRC search.
+        * The directory header was expanded to make the maximum number
+          of entries larger, ranging from 10,880 with 85K of directory
+          cache to 2,088,960 with 16,320K of directory cache, the actual
+          limit of entries is up to the memory that you want to use
+          for the cache, being the maximum of entries the size of the
+          cache in KB multiplied by 128, so using the 40% of a 128MB
+          of memory system will give you a maximum of 6,710,784 entries.
+        * User Registry Implemented.
+
+    Version 0.8
+        * NewGeneration 0.3
+        * Higherblock modified, entry 0x04.
+        * UserRegistry Encryption allowed and multiple encryption methods
+          supported by the usage of the entry 0x04 of the Higherblock.
+
+    Version 0.9
+        * NewGeneration 0.3.1
+        * Higherblock modified, entry 0x5D.
+        * Introduced Higherblock: fs_state bit 6: "OS Installed Flag".
+
+    Version 1.0
+        * NewGeneration 0.3.2
+        * Cell registry completely rebuild, for faster, easier and less time
+          consuming performance.
+        * Introduced the term "Meta Registry Cell" aka "Meta RC" aka "MRC".
+
+    Version 1.1
+        * NewGeneration 0.3.3
+        * The Metablock structure has been completely rebuilt, now is way
+          faster than before and it doesn't get slower when lots of cells
+          are being used.
+        * Introduced the term "Metablock State" or "MBS".
+
+    Version 1.1.1
+        * A subtle change, the allowed ISO Latin-1 character list has been
+          expanded a little.
+        * The MFSS standard has been expanded.
+        * Field 0x08 of the inode (a word) is no longer reserved, now it's
+          the "X-Type" field, which gives extended information about the
+          file type.
+
+    Version 1.2
+        * Term "V-CRC" replaced by "V-Hash".
+        * Field "i_fkeycrc" of the inode replaced by "i_fkeyvhash" and
+          four bytes at offset 0x2E are now used for the "i_fkeyadr" field
+          instead of staying reserved, i_min_acl is not 16-bits wide.
+        * New fields added to the Higherblock: 0x66, 0x68, 0x6B.
+        * Base64 has been taken out of the encryption algorithm list and
+          new rules created for future encryption algorithms.
+        * Some file type values (on some bits) have changed a little.
+        * LSD has come to stay as the replacement of the B-tree.
+        * The user registry has now a 10-bytes header (instead of 4-bytes)
+          and has been completely rebuilt.
+        * The DCB Header is now 32-bytes long.
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 2.0 - Higherblock
+
+    The Higherblock is found right after the operating system boot sector it
+    is .5K long (sector size) it's called block because in earlier versions
+    it wasn't that long in length, and we kind of got stuck with the name.
+
+    In floppy disks the Higherblock is the logical sector 1 (CHS: 0,0,1) and
+    in hard disks it is the sector located after the sector specified by the
+    selected partition.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    2.1 - Format of the Higherblock
+
+    The following table describes in detail the physical (on-disk) format
+    of the Higherblock.
+
+    Offset    Size      Symbol         Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Dword     LeadSign       The leading signature of the
+                                       higherblock it is used to determine
+                                       whether the sector readed is actually
+                                       the higher block, the value of this
+                                       must be 0x6B4C6248.
+    0x004     Byte      Encryption*    The encryption algorithm that was used
+                                       to encode some fields, or objects.
+    0x005     Byte      sectrsPerCell  The number of sectors per cell.
+    0x006     Dword     dataStart      The initial sector of data.
+    0x00A     Dword     metaBlkEntries Count of entries in the metablock.
+    0x00E     Dword     metaBlkAddress The address of the first sector of
+                                       data of the metablock.
+    0x012     Dword     freeCells      Count of free cells.
+    0x016     Dword     dirCacheSize   Size in bytes of the directory cache.
+    0x01A     Dword     totalSectors   The count of total sectors in the
+                                       partition.
+    0x01E     Dword     serialId       The serial Id of the unit, it is
+                                       actually just the value returned by
+                                       g_time (number of seconds elapsed
+                                       since 1st Jan 1970).
+    0x022     Dword     rootDirectory  Number of the cell that contains the
+                                       root directory.
+    0x026     Dword     usrRegistry    Number of the user registry cell.
+    0x02A  32 Bytes     unitName       An ASCIIZ string specifying the name
+                                       of the unit.
+    0x04A     Word      res_uid**      Identification of the user that has
+                                       access to the reserved cells.
+    0x04C     Word      res_gid**      Id of the group that has access to
+                                       the reserved cells.
+    0x04E     Dword     res_cells      Count of reserved cells.
+    0x052     Dword     last_chk_time  Time of the last check of the file
+                                       system integrity.
+    0x056     Dword     chk_interval   Interval in seconds to wait before
+                                       performing an automatic file system
+                                       check (must be >= 86,400 : 24 hours).
+    0x05A     Byte      fs_state       Used to determine the state of the
+                                       file system, bit zero defines the
+                                       basic state (1=all right, 0=error),
+                                       and the bits 2-1 define the action
+                                       to take (0=continue normally, 1=mount
+                                       read-only, 2=perform file system
+                                       check, 3=cause kernel to panic).
+                                       Bit 7 is set only if the file system
+                                       has never been mounted before.
+                                       Bit 6 is set ONLY if an operating
+                                       system has been installed, starting
+                                       after the higherblock.
+    0x05B     Word      max_usrs       The count of max user table entries.
+                                       This value can be changed anytime.
+    0x05D     Byte      rsvd_sects     Count of reserved sectors, to get the
+                                       actual number of reserved sectors just
+                                       do this: x = (rs * 2) + 2, where rs is
+                                       this value and 'x' will be the sector
+                                       count.
+    0x05E     Dword     last_mnt_time  Time of the last mount or zero if
+                                       no mount has occurred ever!.
+    0x062     Dword     last_dmnt_time Time of the last unmount, or zero if
+                                       you have never unmounted the unit.
+    0x066     Word      last_usr_id    Identification of the last user that
+                                       mounted the unit, zero if the user
+                                       is not on the user registry.
+    0x068   3 Bytes     scalar_values  These are three signed scalar values
+                                       obviously from -128 to 127, these are
+                                       the coefficients of the hash equation
+                                       See section 2.5 for more information.
+    0x06B   3 Bytes     enc_scalars    These are three unsigned scalar values
+                                       that are used by the encryption
+                                       algorithm.
+    0x06E 398 Bytes     reserved       -- Reserved for Future Use --
+    0x1FC     Dword     TrailSign      The trailing sign to determine
+                                       whether the block readed is in fact
+                                       the higherblock, the value of this
+                                       field should be 0x4B6C4268.
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    * Refer to the table on section 2.3 to determine the encryption
+      algorithm based on this field, also read section 2.4 to learn
+      more about how a standard encryption algorithm works.
+
+    ** The identification cannot be zero, that means that it's ONE BASED,
+       never put a zero on ANY user/group id or the object will have only
+       the ACL to protect it.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    2.2 - Determining sectrsPerCell and dirCacheSize
+
+    The following table is used to get the value of sectrsPerCell based on
+    the size of the disk in gigabytes.
+
+                Disk Size Range (GB)    Sectors Per Cell
+                ----------------------------------------
+                    0x00-0x0F               0x01
+                    0x10-0x1F               0x02
+                    0x20-0x3F               0x04
+                    0x40-0xXX               0x08
+                ----------------------------------------
+
+    The LSD has been implemented to get rid of the old binary tree, this is
+    because the tree is not 100% reliable when about 20% of it is filled
+    with the same key, if it supports key collision at all, some trees just
+    don't and you have to come up with some bright idea to get it working.
+
+    By using the LSD you get slower search rates than the trees, but since
+    the LSD is NOT on the memory (it's on the disk) you get a lot of free
+    memory to be used for something more important, also, the LSD has been
+    designed especially for multiple collision support, so you can create
+    up to 2^32 entries with the same key and every would still work fine.
+
+    Even tough the LSD supports multiple collisions, there is a bit of
+    complexity when it comes down to calculating a hash value for a given
+    string, a great hash function (such as CRC32) will provide extremedely
+    fast search rates, probably even faster than on-disk binary trees, but
+    the insertion speed will be a lot slower than the search speed, and on
+    the other hand, a semi-poor hash function (such as the one used by the
+    LSD/VNFS, see section 2.5 for more information) will provide a faster
+    insertion rate and a half-good quality search speed. If you use the
+    world's worst hash function, the insertion speed will be incredibly
+    fast, but the bigger the LSD gets the slower the search will become.
+
+    NOTE: The full explanation of the physical on-disk format of an LSD
+          and how the insertion, deletion and search  algorithms work,
+          is out of the scope of this document, but if you want to know,
+          you could search for a document titled: "Level Based Search
+          Directory (LSD) v0.1 On-Disk Format Specification", written by
+          me and dated june 2006. On the RedStar public archives the file
+          is named LSD.TXT.
+
+    The LSD has been mostly designed to be one hundred percent operational
+    directly from the disk, with a minimum requirement of about 64 bytes for
+    a temporal buffer for read/write operations, but as you all know, the
+    more disk accesses you use the slower your engine will be, that's why
+    the LSD uses a medium sized cache to keep the most frequently used data
+    there and the least used on the disk.
+
+    I said "medium sized cache", because I when I worked with the binary
+    tree I used a minimum of about 960 KB of cache to keep the freaking
+    tree on memory and work with it correctly, it was fast of course, but
+    at a great price. The LSD; on the other hand, can work with no cache at
+    all (which obviosly will be slower than if you used cache) or a cache
+    of any size as long as it's less than 1,024 KB (1 MB).
+
+    I'd say that the biggest cache I've worked with, with the LSD is of
+    about 288 KB, and worked really fast, so, the question here is: Why
+    is there a field on the Higherblock named "dirCacheSize"?, well, its
+    used to tell the LSD how much memory it'll use for the cache of that
+    unit. The other question would be: But can't it just be a constant?,
+    and the answer is... no, that is because the power that a user demands
+    from the file system varies from user to user, if you have a company
+    that uses about two million files on a computer to keep track of the
+    personal information of a lot of people, and you need each file to be
+    found and opened as fast as possible you would need a cache size of
+    about 600 KB to work at about a 7 on a scale from 1 to 10 of speed,
+    but if you are a user than only saves a lot of music and images and
+    games and you don't care about the speed of search/insertion/deletion
+    then you won't need such a big cache, 128 KB would be enough, and it
+    would be fast (for your needs), about a 4 on the scale.
+
+    Well, now that you have understood why you use the dirCacheSize field
+    there's only one last question: Where do I get the value from?, and
+    the answer is, the user. You have to ask the user how much memory he'd
+    like to use for the cache of the given unit, that's it. Note that one
+    great property is the fact that the value of dirCacheSize can be
+    changed at any time, that means that it isn't tied to the time of the
+    format, it can be changed whenever you want, but my guess is, the OS
+    will as you to reboot the system.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    2.3 - Determining the Encryption Algorithm
+
+    The field 0x004 (byte) of the Higherblock specifies which encryption
+    algorithm was/is used to encode/decode the protected fields of important
+    data structures and some object (like files), the following table is
+    used to determine which method is used based on the field 0x004 of the
+    Higherblock.
+
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+        2.3.1 - List of Official Encryption Algorithms
+
+        Below is a table that contains the officially defined encryption
+        algorithms, up to this date. More information about them can be
+        found on section A.0.
+
+        Algorithm Name  Number  Brief Description
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+        NULL*           0x00    Null Encryption
+        Type-1          0x01    Byte-oriented algorithm using the bit
+                                wise XOR operator.
+        Type-2          0x02    Byte-oriented algorithm combining an
+                                adition with a XOR operation.
+        Type-3          0x03    Also byte-oriented, combines one
+                                adition with two XOR operations.
+        Mercury         0x04    Sector-oriented algorithm using simple
+                                data mutation and one XOR operation.
+        Reserved   0x05-0xFF    Reserved entries for future algorithms.
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+        * The symbol "NULL" is most commonly used to represent the
+          value of zero.
+
+    There are only two types of algorithms: (1) Byte oriented, and (2) Sector
+    oriented. When an algorithm is byte oriented, the bytes are encoded or
+    decoded one at the time using a simple table or a bit-wise operator, for
+    example the Type-X algorithms shown above are byte oriented.
+
+    If an algorithm is sector oriented then, a whole 512-bytes block (or
+    smaller) is encoded at one time, that provides a higher degree of
+    complexity for an encryption algorithm and therefore more secure data.
+
+    Here's a brief description of how the Type-X byte-oriented algorithms
+    shown above work: Type-1: Encryption and decryption: F(x) = x xor A,
+    Type-2: Encryption: F(x) = (x xor B) - A, Decryption: F(x) = (x + A)
+    xor B, Type-3: Encryption: F(x) = ((x xor B) + C) xor A, Decryption:
+    F(x) = ((x xor A) - C) xor B.
+
+    The value of "x" is simply the zero based i-th element of the input
+    string when walking through a cicle from i=0 to i=n-1 where n is the
+    length of the string.
+
+    In the future you will find some fields that have a note saying: "Field
+    might be encoded", to figure out if the field is actually encoded check
+    the 0x004 field of the Higherblock if it's not NULL then the field is
+    encoded.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    2.4 - Encryption Algorithm Standard
+
+    If you are planning to write you own encryption algorithm, then you
+    should read the following.
+
+        * The encryption and decryption algorithm must be "byte-oriented"
+          or "sector-oriented" that means that it'll encode one byte at
+          the time or one sector (512 bytes maximum) at the time.
+
+        * The resulting encrypted or decrypted data can never be smaller
+          or bigger (in size) than the original. For example, Base64 cannot
+          be used since it expands the size of the input string.
+
+    Now that you know how to develop your own algorithm, it is time to
+    implement it, and here's where I come in, to make your algorithm fully
+    "official", you have to send the algorithm name and it's draft to me
+    to zipox@ureach.com.
+
+    I'll analize it, check if it already exists and figure if it's a good
+    algorithm or not. If it is, then I'll reply to you with your newly
+    assigned algorithm number and I'll publish a new revision of this
+    document with the section 2.3.1 and A.0 updated accordingly. If the
+    algorithm had a problem, I'll tell you what the problem was.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    2.5 - VNFS/LSD Hash Function
+
+    The VNFS/LSD hash function is an equation of the form: Ax^3 + Bx^2 + Cx
+    the coefficients of the equation are given by a three byte array located
+    on the Higherblock at offset 0x66, the coeffients are signed values.
+
+    The value of "x" is an unsigned byte taken from the input string, that
+    is, the value of "x" varies within the cycle that walks through the
+    input string.
+
+    The actual 4-bytes hash value is given by the following:
+
+                  n-1
+    Hash(String) = ä  A(x^3) + B(x^2) + C(x) ; x = String [i], n = Length
+                  i=0
+
+    This pretty much says it all, the value of "x" is the i-th element of
+    the array "String" which is supposed to be the input string, and "n"
+    is the length of the string in bytes. The result is the 32-bit V-hash
+    value used on the DCB.
+
+    The scalars can be changed only one time, when the drive is formatted
+    after that they must remain constant, you can change them at format
+    time only if the OS allows it.
+
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 3.0 - Cell Registry
+
+    The cell registry is used to keep track of a bunch of cells faster and
+    easier, this little invention was implemented in this version 0.7 to
+    make the file system a bit more powerful, but after a while we found
+    a HUGE waste of time on the original design, when the -2/+2 direct jumps
+    of a registry cell were written, the registry engine had to access the
+    disk three times for each new registry cell added, that was a gigantic
+    disappointment, but we (I mean 'I') managed to modify the original
+    design so it would be a bit better, actually not just a bit but a lot
+    better, faster and easier, even though, another buffer is required, that
+    is a cost that we are willing to pay for the new design.
+
+    Here's how it works, the "cell registry" is an array that contains the
+    list of the cells used by the file, well, actually that was the former
+    definition of the cell registry, now it's a bit different, you see, the
+    cell registry is now an array (formed by the combination of all the
+    registry cells of an object) that contains the addresses of the "Meta
+    Registry Cells". A Meta Registry Cell or just Meta RC or just MRC, is
+    an array that contains the addresses of the cells used by the file.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.1 - Format of a Registry Cell
+
+    The following table describes in detail the on-disk format of a registry
+    cell, note that EVERY registry cell in the registry has the same format.
+
+    Offset    Size      Symbol         Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Dword     prev_regc      Address of the previous registry
+                                       cell, or NULL if there is no cell
+                                       preceeding this one.
+    0x004     Dword     next_regc      Address of the next registry cell,
+                                       or NULL if this cell is the last one
+                                       in the chain.
+    0x008   N Dwords    mrc_list       It is an array that contains the cell
+                                       numbers (aka addresses) of the meta
+                                       registry cells.
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    The prev_regc and next_regc fields ensure that each registry cell will
+    actually be linked to the abstract cell registry. The remaining number
+    of bytes on a cell after using the first eight bytes is x - 8, where x
+    is the count of bytes per cell, now, N = (x - 8) / 4, basically that
+    means that the mrc_links is an array of N double words, now you know
+    how to get the value of N.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.2 - Brief Explanation of the Cell Registry
+
+    The prev_regc and next_regc fields of a registry cell ensure that the
+    current cell will be properly linked to the whole cell registry, with
+    those fields you can practically walk through the cell registry at will
+    until you find a NULL next_regc value which would mean that you reached
+    the last link in the chain.
+
+    Note that each registry cell contains N meta registry cells, each meta
+    registry cell can contain up to x/4 entries (where x is the count of
+    bytes per cell), and each entry of an MRC can hold up to x bytes of
+    actual file data, let's assume the minimum SPC (which is 1), now let's
+    do some math, the value of N is 126 ((512-8)/4), that means that one
+    registry cell can hold 126 meta registry cells, now, how many actual
+    file data cells can an MRC hold? 128 (512/4), well... we have 126 MRCs
+    and each one has 128 data cells, that is 16,128 data cells, and each
+    data cell can have 512 bytes, that is 8,257,536 bytes, which means that
+    using one single registry cell you can control up to 7.875 MB of file
+    data, how's that uh?.
+
+    Here's how it works, in earlier days a huge array called the MetaBlock
+    (which was like the DOS FAT file system) contained the information of
+    every cell on the disk, specifying its state: full, free, etc. And also
+    it contained information refering to a linkage, which cell is previous,
+    and which one is next, that is, each entry in the MetaBlock was a Dword,
+    but then our magic calculator revealed something to us, if we had a 80GB
+    hard disk using the maximum sectrsPerCell which is 32*, we would end up
+    with a 5MB MetaBlock, which would make the simple tasks a lot slower, so
+    we decided to shrink it out a bit, but by making the MetaBlock more tiny
+    the information would also get tiny, we wouldn't have enough information
+    to make anything at all and there's when a beam of light hit our brains,
+    the Cell Registry.
+
+                     * A long time ago the maximum SPC was 32, now it isn't.
+
+    The Cell Registry is private, that means that each file system object has
+    its own cell registry, it works just as a private MetaBlock with the
+    exception that it is faster, using the simple structure shown above we
+    can virtually (and physically) map any offset very easy and quick, but to
+    make this a little more clear here's an example, let's assume that you
+    want to read a byte from a file (which is a file system object, therefore
+    it has its own cell registry) the byte is at offset 1072834, so, first
+    off we must 'seek' to the registry cell that contains the meta registry
+    cell that contains the cell address that contains the byte that we want
+    to read (what a tunnel!), how can we do this? well, the following
+    ecuation saves us all (a bit):
+
+    NOTE: From now on this example is followed through sections, always
+          assume that SPC is one.
+
+             registry_cell_i = Offset / virtRC_size                  EQ 1.
+
+    Where registry_cell_i is the index of the cell within the cell registry
+    that contains the meta registry cell that contains the cell address that
+    contains the byte you want to read, and virtRC_size is the virtual size
+    of a registry cell, it is virtual because it is used only to specify how
+    many file data bytes a single cell registry can hold, we already
+    calculated it for 512 BPC (1 SPC), the value was 8257536.
+
+    Let's follow the example, the offset was 1072834, when evaluating the
+    EQ 1, we get that registry_cell_i is 0, that means that the data we want
+    can be mapped using only the registry cell index 0 (aka the first
+    registry cell).
+
+    Now, we need to know which meta registry cell contains our data, that
+    is done by finding an index within the already read registry cell, that
+    index is given by:
+
+            MRC_index = (Offset % virtRC_size) / virtMRC_size        EQ 2.
+
+    To get more info about the virtMRC_size please read the next section.
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.2.1 - Meta Registry Cell
+
+    An MRC (meta registry cell) is just a cell that is contained within the
+    cell registry, that cell contains Z cell addresses, where Z can be
+    calculated using the formula:
+
+                           Z = cellSize / 4                          FR 1.
+
+    Where cellSize is the number of sectors per cell times 512 (aka count of
+    bytes per cell), now, the virtual size of a MRC is the count of physical
+    file data bytes that one single MRC can hold, that is given by the
+    formula:
+
+                       virtSize = Z * cellSize                       FR 2.
+                    cellSize = sectrsPerCell * 512                   FR 3.
+
+    Where Z is given by the formula (1) and sectrsPerCell can be readed from
+    the Higherblock. Now let's continue with the example, the offset is
+    supposed to be 1072834, when replaced in the EQ 2 we get the value of
+    the meta registry cell which is 16.
+
+    Ok, we have the meta registry cell, now let's get the number of the
+    entry within that MRC that contains the file data cell that contains
+    the byte at offset 1072834, that is given by:
+
+             dataCell = (Offset % virtCell_size) / cellSize          EQ 3.
+
+    The dataCell gives the index within the readed meta registry cell of the
+    cell that contains the data you want, of course, to convert index to
+    offset it must be multiplied by 4 (the size of each entry in the meta
+    registry cell).
+
+    Up to this point there is need to mention that all the math shown in the
+    formulas and equations are integer fixed (computer notation) so don't
+    round it up, just take the integer part for each operation.
+
+    Now we have the dataCell where the byte is contained, when operating in
+    the EQ 3 we get the result of 47, which is the index of the cell which
+    contains our data, now we need one last thing, an offset within that
+    cell.
+
+                       wOffset = Offset % cellSize                   FR 4.
+
+    The wOffset is the offset (within the data cell) of the byte 1072834 of
+    your file, when operating on FR 4 the result is 194, that's it. See, it
+    wasn't that hard, was it? Here's the summary:
+
+         * Get an index within the cell registry (registry_cell_i)
+         * Get an index within the registry cell (MRC_index)
+         * Get an index within the meta registry cell (dataCell)
+         * Get an offset within the data cell (wOffset)
+         * Read your data and that's it.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.3 - User Registry
+
+    The user registry is an array containing the keywords and the user names
+    (also group names) of the persons that can access the objects. As its
+    name implies, the user registry is a cell registry.
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.4 - Format of the User Registry Header
+
+    Offset    Size      Symbol        Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Dword     freeEntry     Offset of the next free entry.
+    0x004     Dword     firstDead     Offset of the first dead entry.
+    0x008     Word      entriesCount  Count of total entries both, alive
+                                      and dead.
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    The remaining data (after the header) is just a bunch of user and
+    group definitions, each one has the format shown below. The firstDead
+    field is zero based, if zero then no killing has taken place yet.
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.5 - Format of an User Registry Entry
+
+    Offset    Size      Symbol         Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Word      Identification The identification of this entry,
+                                       this value is simply the entry index
+                                       plus one ('cause it can't be 0).
+    0x002     Word      groupId        Identification of the host group or
+                                       zero if no group is hosting this user.
+    0x004     Word      accessLevel    Defines the access level of the user
+                                       or group, used to secure classified
+                                       objects.
+    0x006     Byte      groupDef       Non-zero if the entry is a group
+                                       definition, 0xFF is the entry is dead.
+    0x007     Word      groupSuperv    Identification of the supervisor
+                                       of the group, if zero, then all the
+                                       members have the same access level.
+    0x009  23 Bytes     Keyword*       The ASCIIZ keyword of the user/group.
+    0x020  24 Bytes     Name*          The ASCIIZ user or group name.
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+                                                  * Field might be encoded.
+
+    The accessLevel is used to describe the user/group level of access, a
+    user/group level 3 cannot access objects of a higher level, that is used
+    for optimal object protection. The user with the highest level without
+    a group is considered to be the super user (supervisor), and the user
+    with the highest access level within a group is the group supervisor.
+
+    Here the things are a bit reversed, a "high" level would be a low number,
+    and a "low" level would be a high number, if you enter to a computer as
+    anonimous (if the operating system allows it) and you want to create an
+    account of yours; nothing will stop you, but if you want to pertain to
+    some group, you'll need the aproval of the supervisor of that group in
+    order become a member, otherwise you will waste your time trying.
+
+    The acls on the user registry are "local" acls, they give you the level
+    of access of and specicied user or group within a local scope, in other
+    words within the current group, that is, two users from different groups
+    can have the same access level. To get the "global" acl such as the one
+    requested by the i_min_acl field of the inode you have to sum the acl
+    of the user (local acl) with the acl of the group. All the groups will
+    ALWAYS have global acls, no matter if they are within another group.
+
+    The user acl limit is 32,768 and the group acl limit is 32,767, so that
+    when you add both of them you end up with 65,535.
+
+    Note that there is supposed to be only one user with the access level of
+    zero (the highest) so NEVER give the zero acl to more than one user.
+
+    The supervisor of a group (the user with the highest access level on a
+    group) is able to change the access levels of other members of the same
+    group, also the group name, you can find the id of the supervisor of
+    a group on field 0x007 of the user registry entry.
+
+    The super supervisor (the zero acl user) is able to change the names
+    of all groups and their access levels, also the access levels of every
+    user on the user registry.
+
+    There's need to mention that the user/group identification is ALWAYS the
+    index of the entry plus one, because the id cannot be zero, when the id
+    is zero then ONLY the access level is checked and the access rights are
+    read as if the user was anonimous.
+
+    The format shown above if for an "alive" entry, when you delete an
+    user or a group, you should link it to the dead chain to reuse the
+    space allocated for the entry has is going to die, the format of a
+    dead entry is slightly different, the first word remains untouched
+    to recycle the identification, at offset 2 you'll find a dword that
+    is used to link the current entry to the next dead entry, the rest
+    is just garbage, since it's not needed because the entry is dead.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    3.6 - Registry Based File System Objects
+
+    The following file system objects are based on the registry cell driver:
+
+        (1) User Registry
+        (2) Directory Control Block
+        (3) Inode Table
+        (4) Symbol Table
+        (5) LSD
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 4.0 - Metablock
+
+    The Metablock is where the cell meta entries are stored, this block is
+    an array containing 8-bit entries, describing the state of the selected
+    cell, a cell meta entry (or just meta entry) is simply the state of a
+    cell, the following table (4.1) shows the allowed values that a meta
+    entry can contain.
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    4.1 - Allowed Values for Meta Entries
+
+    The following table describes the allowed values that a meta entry can
+    take and their respective brief description.
+
+                 Value      Description
+                 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+                 0x00       Free cell
+                 0xFF       Bad cell
+                 0xFE       Inode Table Registry cell
+                 0xFD       Symbol Table Registry cell
+                 0xFC       Directory Registry cell
+                 0xFB       File Registry Cell
+                 0xFA       Meta Registry Cell
+                 0xF9       "User Registry" Cell
+                 0xF8       "Cell Registry" Cell
+                 0xF7       Data Cell
+                 0xF6       LSD Registry cell
+                 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    In earlier days, the metablock worked just like the file allocation
+    table (FAT), but when the cell registry was implemented, one single
+    registry could control all the cells within it; easier, more secure and
+    faster.
+
+    And by keeping the Metablock, but now, not as a linked array of cells
+    but as a 'bytemap' of the cells' state, the cell scanner speed would be
+    highly improved, even better than bit-scanning since bytes are already
+    aligned to 8-bit boundaries.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    4.2 - Metablock State Structure
+
+    The MBSS is an array located right after the Metablock, it is used to
+    speed up the cell scanner (this structure is just been implemented on
+    this version)  the Higherblock formulas (section 9.2)  have been changed
+    in order to compute the corrected datastart, since now there are N ghost
+    sectors located after the Metablock, I say ghost sectors because nothing
+    truly tells you what they are (other than this specification) there is no
+    extra data about them on any structure, so they are in fact a bit ghost.
+
+    Ok. Now, what is the MBSS?, it's an array, a bit-array, each bit
+    represents one Metablock sector, if the bit is zero then the Metablock
+    sector is not completely full (or not full at all), if the bit is set
+    (aka one) then the Metablock sector is full (it doesn't have any free
+    cells), the major (and only) use of the MBSS is to speed up the cell
+    scanner.
+
+    Let's do a little math exercise, one single MBSS sector is able to give
+    information about 4096 Metablock sectors, and each Metablock sector has
+    information about 512 cells, that is, 2097152 cells, if you have an SPC
+    of one, your single MBSS sector will be able to indirectly handle a giga
+    byte of data.
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 5.0 - Directory Control Block
+
+    The directory control block (aka DCB) is a 32-bytes block located at the
+    top of a directory cell, this allows the driver to acquire information
+    that is very important without scanning or searching for it, this 32
+    bytes are the actual DCB, the remaining bytes are just mere directory
+    entries.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    5.1 - Format of the Directory Control Block
+
+    Offset    Size      Symbol              Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Dword     nextFreeEntry       The next free entry index.
+    0x004     Dword     firstDel            The index of the first deleted
+                                            entry + 1 (exclude zero).
+    0x008     Dword     totalEntries        Count of ALIVE/UNDEAD entries
+                                            stored in the directory, the only
+                                            way of decreasing this value is
+                                            by deleting a file physically.
+    0x00C     Dword     inodeRegistryAdr    Address of the inode registry.
+    0x010     Dword     symbolRegistryAdr   Address of the symbol registry.
+    0x014     Dword     parent              The cell address of the parent
+                                            directory, if NULL, then this is
+                                            the root directory.
+    0x018     Dword     LSD_RegistryAdr     Address of the LSD registry.
+    0x01C     Dword     Reserved            Reserved
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    A directory entry is an 8-bytes array containing basic information about
+    a file, these entries are located right after the DCB.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    5.1 - Format of a Directory Entry
+
+    Offset    Size      Symbol    Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Word      f_grpid   Mirrored group id from inode.
+    0x002     Word      f_type    Mirrored file type from inode.
+    0x004     Dword     f_vhash   The V-Hash of the file name, that is used
+                                  for high-speed directory scan.
+    0x004     Dword     f_nlink   This field contains the "next dead" link
+                                  index plus one, which is an index to the
+                                  next dead entry plus one, this field is
+                                  actually the same as the f_vhash but when
+                                  the entry dies this field becomes the
+                                  f_nlink.
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 6.0 - Symbol Table
+
+    It contains the names of all the directory entries, in other words the
+    symbolic identification of a directory entry, the size of the entries
+    in this table are not fixed, they're dynamically stored (they can have
+    different sizes) that is why you need extra work to find an entry, but
+    that's not going to be so hard, don't worry because the function that
+    created the entry is the one that must do the extra work, the symadr of
+    the inode entry must point exactly to the absolute offset (within the
+    symbol table) of the file's symbol. Since the NG-VNFS v0.7 implemented
+    the cell registry engine, the symbol location operation is easily done
+    by using the registry driver.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    6.1 - Symbol Table Header Format
+
+    Offset    Size      Symbol      Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Dword     s_nextfree  Offset of the next free entry.
+    0x004     Dword     s_firstdel  The offset of the first deleted entry
+                                    plus one, if zero no deletion has taken
+                                    place yet.
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    Note that the offsets don't include the header size, so an offset of
+    zero would be zero plus the header size to obtain the actual physical
+    offset.
+
+    The entries are stored right after the header, each entry has non-fixed
+    size and has the format shown below (section 6.2).
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    6.2 - Format of a Symbol Table Entry
+
+    Offset    Size      Symbol    Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Byte      Length    The length of the symbol.
+    0x001   N Bytes     Symbol    The actual symbol data, where N is the
+                                  length (previous field).
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    The symbol field is the ISO Latin-1 (allowed characters) name of the
+    file with a trailing zero (to terminate the string) the maximum number
+    of bytes per entry is 256, minus the length byte, minus the zero byte,
+    we have a total of 254 bytes for symbolic data, that's it, no more.
+
+    There is a mechanism used in heap based memory management that has been
+    implemented in this section of the file system, the symbol table is
+    very dificult to control once lots of entries have been created, so, to
+    find free entries faster we use linear positioning, the next free space
+    is the last entry offset plus its length. That's cool, but when the user
+    deletes an entry, using linear positioning, that entry becomes garbage
+    that we'll never use again, so, to recycle that data space we use the
+    post-mortem structure which has the following format:
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    6.3 - Format of a Symbol Table Entry Post-Mortem
+
+    Offset    Size      Symbol    Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x000     Byte      Length    The length of the entry (excluding this
+                                  byte).
+    0x001     Dword     efNext    The effective offset of the next dead
+                                  entry (one based offset).
+    0x005   Z Bytes     garbage   --See below--
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    The efNext field (four bytes) is actually overlapping the former "actual
+    symbol" data, since it'll be no longer used I decided to recycle it,
+    therefore the garbage field contains the bytes that we did'nt need to
+    overlap, therefore the Z value is given by subtracting five from the
+    length.  Note that there are four post-mortem bytes, therefore, if
+    you find that the user is trying to create an entry with N < 4, you must
+    set N to four because that's the minimum amount of bytes required when
+    the entry dies. If the efNext field is zero then the link doesn't exist
+    (since post-morten offsets are one based).
+
+    The symbolRegistryAdr field in the directory control block points to the
+    registry of the symbol table of the current directory.
+
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 7.0 - Inode Table
+
+    The inode table is an array containing extended information about a file
+    including protection mechanisms. The inode entry of a directory entry
+    is always the zero-based index of the directory entry.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    7.1 - Inode Entry Format
+
+    Offset    Size      Symbol         Description
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    0x00      Word      i_usrid*       User identification (super user)
+    0x02      Word      i_grpid*       Group identification (super group)
+    0x04      Word      i_min_acl      Minimum access level Required
+    0x06      Word      i_ftype        File type (see below)
+    0x08      Word      i_xtype        Extended File Type (see below)
+    0x0A      Dword     i_fsize        File size in bytes
+    0x0E      Dword     i_atime        Last access time (last read)
+    0x12      Dword     i_ctime        Creation time
+    0x16      Dword     i_mtime        Last modification time (last write)
+    0x1A      Dword     i_dtime        Deletion time (if deleted)
+    0x1E      Dword     i_generation   File generation (Version)
+    0x22      Dword     i_cellreg      Address of the file's cell registry
+    0x26      Dword     i_symadr       Symbol address (offset)**
+    0x2A      Dword     i_fkeyvhash    V-Hash of the file's keyword
+    0x2E      Dword     i_fkeyadr      Address of the file's keyword***
+    0x32   14 Bytes     i_rsvd         --Reserved--
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    * The usr/grp identification cannot be zero, if so, then ONLY access
+      level check is performed and the access rights are set to anonimous.
+
+    ** The symbol offset is zero based.
+
+    *** The file's second keyword is also stored on the symbol table.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    7.2 - File Type (Attributes, Access Rights and Properties) and X-Type
+
+        The file type is located on any inode at offset 0x06 or any DCB
+        entry at offset 0x02. Now, the X-Type is the eXtended file type,
+        that is used to protect the file even more, the X-Type can be
+        read, only from an inode at offset 0x08.7
+
+         Name                Mask      Notes              * File Type Bits
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+         Object Type         0x000F    Bit 3 is used to specify whether the
+                                       file has been logically deleted also
+                                       known as recycling.
+
+                                       Value    Name           Symbol
+                                       -----------------------------------
+                                       0x00      ---- Invalid Object ----
+                                       0x01      Encrypted File FT_ENCFILE
+                                       0x02      Buffer (FIFO)  FT_FIFO
+                                       0x03      Regular File   FT_REGFILE
+                                       0x04      Directory      FT_DIR
+                                       0x05-0x07 Reserved
+                                       -----------------------------------
+
+         Reserved Bits       0x0030    --- Reserved ---
+
+         Access Rights       0x0FC0    There are three sets of access rights
+                                       specified for each mode of access
+                                       which could be: (1) super group,
+                                       (2) others and (3) anonimous, note
+                                       that there is no "super user" (that is
+                                       the user who created the file) because
+                                       it's obvious that he would like to
+                                       have full access.
+
+                                       Mode Name      Mask
+                                       ---------------------
+                                       1    grpftype  0x00C0
+                                       2    oftype    0x0300
+                                       3    aftype    0x0C00
+                                       ---------------------
+
+                                       Each mask will provide access to two
+                                       bits, those two bits can take up to
+                                       four values, which are defined in the
+                                       following table:
+
+                                       Value     Name           Symbol
+                                       ----------------------------------
+                                       0x00      Execute Only   FT_XONLY
+                                       0x01      Read Only      FT_RDONLY
+                                       0x02      Write Only     FT_WRONLY
+                                       0x03      Rd/Wr/Execute  FT_RWX
+                                       ----------------------------------
+
+                                       The delete and copy access are
+                                       derived from the write and read
+                                       access respectively, if you have
+                                       read access you can copy the file,
+                                       if you have write access you can
+                                       delete the file.
+
+         Properties          0xF000    Specifies the properties of the file.
+
+                                       Bit  Description
+                                       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+                                       3    Secure Deletion: When the file
+                                            is physically deleted the cells
+                                            that pertained to the file are
+                                            cleared to make sure that no one
+                                            will read the data directly from
+                                            the disk or to prevent recovery.
+
+                                       2    Ultra Protection: Used for super
+                                            classified files, a second
+                                            keyword is required in order to
+                                            be able to access the file.
+
+                                       1    Append Only: When writing to the
+                                            file the data is only appended,
+                                            and no overwrite occurs, also
+                                            seeking to upper positions won't
+                                            take effect.
+
+                                       0    Inmutable File: The attributes
+                                            of the file can't be changed.
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+        The following table defines the bit layout of the word located
+        at inode offset 0x08 also known as the i_xtype fields which
+        gives extended information about the file.
+
+
+         Name                Mask      Notes     * Extended File Type Bits
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+         Extended Properties 0x000F    Specifies the extended properties
+                                       of the file.
+
+                                       Bit  Description
+                                       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+                                       3    Hidden: The file is not visible.
+
+                                       2-0  Reserved
+                                       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+         Reserved            0xFFF0    For now it's reserved.
+        ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    7.3 - Deleting a File Physically
+
+        In order to be able to physically delete a file (correctly) the
+        programmer should have in mind the following considerations:
+
+            * Before anything take a look at the user privileges to see
+              if deletion is allowed.
+            * The inode index and the directory index of a file entry
+              are ALWAYS the same.
+            * The f_nlink field of the DCB entry should be initialized
+              and updated.
+            * The firstdel field of the DCB header should be modified
+              and updated.
+            * The totalEntries field of the DCB header should be
+              decreased.
+            * The f_type field of the DCB entry MUST be set to zero.
+            * The s_firstdel field of the symbol table header should be
+              initialized and updated.
+            * The post mortem fields of the symbol entry should be
+              initialized and updated.
+            * The cells pertaining to the registry pointed to by the
+              i_cellreg field of the inode entry should be released, and
+              if the bit 3 of the file properties (secure deletion) is set
+              each cell should be cleared before writing it back to the disk.
+            * The inode entry should be cleared.
+
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 8.0 - Multiple File System Support Standard
+
+    * When a file is recycled the totalEntries field of the DCB header must
+      remain untouched.
+
+    * When a file is deleted physically the inode entry should be cleared
+      and the f_type field of the DCB entry MUST be set to zero.
+
+    * To open a file using a DTA definition, the DTA must be valid, and
+      the call to fopen should be with the pointer (cast as char far *)
+      to the DTA structure, the open mode as usual and the attr parameter
+      as -1.
+
+    * The path qualifier must use the current unit's path to resolve
+      the qualified path address when not absolute paths are supplied.
+
+    * When specifying path instead of file, a slash must preceed the data
+      for example, to open file "a.dat" it'd be just "a.dat", but if it's
+      in the directory "test/info" then it would be "/test/info/a.dat".
+
+    * When specifying drive, a slash must preceed the data followed by the
+      unit alias and followed by a colon, i.e. "/rd0:a.dat".
+
+    * The alias are set according to the driver media type, there should be
+      only one driver for each drive type (i.e. fdd, hdd, cd-rom, etc), the
+      alias base of the <driver> provides 50% of the data needed to build
+      the alias and the other 50% is calculated by the MFSS according to the
+      following terms: (1) Drives whose media support only one partition are
+      1-to-1 the id refers to the physical drive, i.e. fd0 first floppy
+      drive, fd1 second floppy drives, etc. (2) In other case the id refers
+      to the drive and partition number, this exists only for hard disks and
+      there are allocated four ids per drive to avoid confussion. i.e. hd0
+      'd be first hard disk (primary master) first partition, hd3 'd be first
+      hard disk, fourth partition, hd11 'd be third hard disk (secondary
+      master) fourth partition, and so on.
+
+    * Path Examples:
+        Example                             Drive       Path
+        /hd0:/core0.7/lib/sys_env.cpp       Absolute    Relative
+        /rd0:kernel.cpp                     Absolute    Relative
+        /lab/core/console.cpp               Relative    Relative
+        /fd0://redstar/core/v0.7.zip        Absolute    Absolute
+
+    * The alias of the unit that booted the system is "master", for
+      example to access the file "gfx.exe" on system/drivers/video
+      you should write: "/master://system/drivers/video/gfx.exe".
+
+    * '..' is the default parent directory name, it is not a directory
+      entry, but in fact just a virtual directory which points to the
+      parent, it isn't necessary to actually write an entry with this
+      name on the disk.
+
+    * '/' (slash) is the default directory separator.
+
+    * The file system driver must check that when a call to the change
+      directory (CHDIR) function with NULL path argument then the user
+      wants to change to the root directory, and if the argument is '..'
+      then it refers to the parent directory.
+
+    * The change directory function needs to check the first byte of the
+      argument against one of the following cases:
+
+      Value     Description                 Action
+      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+      0x00      Return current directory    The current directory address
+                                            must be stored in the string as
+                                            a double word.
+      0x01      Set current directory       The directory address is located
+                                            at offset 1, it's a dword.
+      0x02      Set "real directory" Addr   Sets the address of the real
+                                            directory, AKA the actual
+                                            working directory.
+      0x03      Get current dir access      Returns the current directory's
+                                            access rights as a dword on the
+                                            given string.
+      0x04      Set current dir access      Same as above but this will set
+                                            the directory access rights.
+      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    * A symbol can contain any of the ISO Latin-1 Characters, except the
+      following:
+
+      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+      8.1 - Not Allowed ISO Latin-1 Characters
+
+      Value             Description
+      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+      00-31 127         Control Codes
+      42 47 58          Path Control (asterisc, slash and colon)
+      60 62 124         Console Characters (less-than sign, greater than
+                        sign, and pipe).
+      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ 9.0 - Formulas
+
+    Below is presented a set of formulas, that I hope will help you, to
+    accomplish the mission of implementing the NG VNFS 1.1.1.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    9.1 - Conversion Formulas
+
+        * From linear sector to cell address and backwards:
+
+            linear = (cellNum * sectorsPerCell) + dataStart
+            cellNum = (linear - dataStart) / sectorsPerCell
+
+        * To linear sector from CHS:
+
+            linear = (s - 1) + (h * spt) + (c * (spt * nhs))
+            c = linear / (spt * nhs)
+            h = (linear / spt) % nhs
+            s = (linear % spt) + 1
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    9.2 - Formulas to Compute Higherblock Fields
+
+        * Metablock (and MBSS) Related
+
+            metaBlkEntries = diskSectors / sectorsPerCell
+            metaBlkSectors = metaBlkEntries / 512 + (mb_e % 512 ? 1 : 0)
+            rsvdSectors = ? // Usually a Constant, which value do you prefer?
+            metaBlkAddress = initialSector + rsvdSectors
+
+            sectorsOfMBSS = (metaBlkSectors / 8) + (mbs % 8 ? 1 : 0)
+
+            * Usable Metablock Entries (to exclude metablock itself).
+              NOTE: When using 32-bit long integers (dword) this formula is
+                    not suitable for hard disks size > 163 GB.
+
+            tmp = ((rsvdSectors + sectorsOfMBSS + metaBlkSectors) * 100) /
+                    sectorsPerCell
+
+            usableMBE = ((metaBlkEntries * 100) - tmp) / 100
+
+            MBSS_start = metaBlkAddress + metaBlkSectors
+
+        * Miscellaneous
+            dataStart = MBSS_start + sectorsOfMBSS
+            totalSectors = diskSectors - rsvdSectors
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ A.0 - Drafts of the Official Encryption Algorithms
+
+    This section provides information about the official encryption
+    algorithms shown on the table 2.3.1 of section 2.3. Note that only
+    the algorithms from 0x04 to 0xFF will be explained, the first Type-X
+    algorithms are incredibly simple, too simple to be explained here.
+
+
+    ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    A.0.1 - "Mercury" by J. Palencia (zipox@ureach.com)
+
+    The Mercury is the encryption method used by the RedStar Software, it
+    is simple and yet good enough to fool the code breakers for a while.
+
+    It is a sector oriented algorithm, the caller should provide a 512-bytes
+    block as the input string and a separate 512-bytes buffer as the output
+    string. Never use the same buffer for input string and output string
+    since the design of this algorithm was not intended to work like that.
+
+    The symbols used here are SRC and DST, for "Source" and "Destination"
+    strings accordingly, SRC_L for source length, the read/write from string
+    syntax used here is: String:[Offset], where string can be SRC or DST and
+    offset is the offset within the string, of the byte wanted, the symbol
+    "<-" is used for assignment, for example: "DST:[2] <- SRC:[1]" means get
+    a byte from the source at offset 1 and put it on the destination at
+    offset 2.
+
+    The pseudo-function "iter[x,a,b,s]:???" is used for iterations, and it
+    is read: Iterate for variable "x" from "a" to "b" and execute the code
+    defined by ???, increment or decrement "x" by "s". The argument "s" is
+    optional if it isn't provided you can assume "1", you don't need to put
+    -1 for downto cicles, just the absolute value of the step.
+
+    Note that the offsets are zero based, so the last byte from SRC is at
+    offset SRC_L - 1.
+
+    Here's my pseudo-code of the encryption algorithm:
+
+        DST:[0] <- SRC:[SRC_L - 1]
+        DST:[1] <- SRC:[0]
+        DST:[SRC_L - 1] <- SRC:[1]
+        iter[i, 2, SRC_L - 2]: DST:[SRC_L - i] <- SRC:[i]
+        iter[i, 0, SRC_L - 1, 2]: DST:[i] <- DST:[i] XOR A
+
+    A is the Xoring constant.
+
+    Let's test it, let SRC be "NICELY_DONE", therefore SRC_L is 11, also let
+    A be 5.
+
+        DST:[0] <- SRC:[SRC_L - 1]                  ;DST = "E"
+        DST:[1] <- SRC:[0]                          ;DST = "EN"
+        DST:[SRC_L - 1] <- SRC:[1]                  ;DST = "EN........I"
+        iter[i,2,SRC_L-2]:DST:[SRC_L-i]<-SRC:[i]    ;DST = "ENNOD_YLECI"
+        iter[i,0,SRC_L-1,2]:DST:[i]<-DST:[i] XOR A  ;DST = "@NKOA_\L@CL"
+
+    The result "@NKOA_\L@CL" is quite far from "NICELY_DONE".
+
+    And here's my pseudo-code of the decryption algorithm:
+
+        DST:[0] <- SRC:[1]
+        DST:[1] <- SRC:[SRC_L - 1]
+        DST:[SRC_L - 1] <- SRC:[0]
+        iter[i, 2, SRC_L - 2]: DST:[i] <- SRC:[SRC_L - i]
+        j <- ((SCR_L AND 1) XOR 1) + 1
+        iter[i, j, SRC_L - 1, 2]: DST:[i] <- DST:[i] XOR A
+        DST:[SRC_L - 1] <- DST:[SRC_L - 1] XOR A
+
+    And now it's time for the test, let SRC be "@NKOA_\L@CL", therefore
+    SRC_L is 11, also let A be 5 (note that SRC is taken from the result
+    of the previous test).
+
+        DST:[0]<-SRC:[1]                            ;DST = "N"
+        DST:[1]<-SRC:[SRC_L-1]                      ;DST = "NL"
+        DST:[SRC_L-1]<-SRC:[0]                      ;DST = "NL........@"
+        iter[i,2,SRC_L-2]:DST:[i]<-SRC:[SRC_L-i]    ;DST = "NLC@L\_AOK@"
+        j <- ((SCR_L AND 1) XOR 1) + 1              ;j   = 1
+        iter[i,j,SRC_L-1,2]:DST:[i]<-DST:[i] XOR A  ;DST = "NICELY_DON@"
+        DST:[SRC_L-1]<-DST:[SRC_L-1] XOR A          ;DST = "NICELY_DONE"
+
+    There it is. Perfectly decrypted. To finish there's one little thing I
+    want to say, the xoring constant "A" is given by the first scalar value
+    from the Higherblock offset 0x69.
+
+
+ ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+    Thanks for Reading and... x3m coding!
+
+    Last Update: Sep 30th, 2007 - Sunday
+
+    Copyright (C) 2004-2007 RedStar Technologies
+    Written and Designed by J. Palencia (zipox@ureach.com)

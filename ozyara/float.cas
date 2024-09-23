@@ -1,0 +1,151 @@
+/*
+    FLOAT.CAS
+
+    Floating Point Conversion Routines
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+*/
+
+    #include <gfrac.h>
+
+    /* Temporal buffer. */
+    static char buf [10];
+
+    /* Loads a gInt into a FP register. */
+    static void gIntLoad (gInt A)
+    {
+        static unsigned long Temp, n256 = 256;
+        char *dest = A.Value;
+        int i = A.ByteCount;
+
+            Temp = 0;
+
+            asm les bx, [dest]
+            asm mov cx, word ptr [i]
+
+            asm fldz
+            asm fild dword ptr [n256]
+
+        gCicle:
+            asm mov al, es:[bx]
+            asm inc bx
+            asm mov byte ptr [Temp], al
+            asm fmul st(1),st(0)
+            asm fild dword ptr [Temp]
+            asm faddp st(2),st(0)
+            asm dec cx
+            asm jnz gCicle
+            asm fstp dword ptr [Temp]
+    }
+
+    /* Converts a GFrac into a 32-bit floating point. */
+    char *gFracToSingle (gFrac A)
+    {
+        char *dest = buf;
+        int sign = 1;
+        gInt Temp;
+
+            if (gIntNegative (A.Numer))
+            {
+                gIntLoad (Temp = gIntNeg (A.Numer, 0)), sign = -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Numer);
+
+            if (gIntNegative (A.Denom))
+            {
+                gIntLoad (Temp = gIntNeg (A.Denom, 0)), sign *= -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Denom);
+
+            asm fdivp st(1),st(0)
+
+            if (sign == -1)
+            {
+                asm fldz
+                asm fsubrp st(1),st(0)
+            }
+
+            asm les bx, [dest]
+            asm fstp dword ptr es:[bx]
+
+            return dest;
+    }
+
+    /* Converts a GFrac into a 64-bit floating point. */
+    char *gFracToDouble (gFrac A)
+    {
+        char *dest = buf;
+        int sign = 1;
+        gInt Temp;
+
+            if (gIntNegative (A.Numer))
+            {
+                gIntLoad (Temp = gIntNeg (A.Numer, 0)), sign = -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Numer);
+
+            if (gIntNegative (A.Denom))
+            {
+                gIntLoad (Temp = gIntNeg (A.Denom, 0)), sign *= -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Denom);
+
+            asm fdivp st(1),st(0)
+
+            if (sign == -1)
+            {
+                asm fldz
+                asm fsubrp st(1),st(0)
+            }
+
+            asm les bx, [dest]
+            asm fstp qword ptr es:[bx]
+
+            return dest;
+    }
+
+    /* Converts a GFrac into an 80-bit floating point. */
+    char *gFracToReal80 (gFrac A)
+    {
+        char *dest = buf;
+        int sign = 1;
+        gInt Temp;
+
+            if (gIntNegative (A.Numer))
+            {
+                gIntLoad (Temp = gIntNeg (A.Numer, 0)), sign = -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Numer);
+
+            if (gIntNegative (A.Denom))
+            {
+                gIntLoad (Temp = gIntNeg (A.Denom, 0)), sign *= -1;
+                gIntDelete (Temp);
+            }
+            else
+                gIntLoad (A.Denom);
+
+            asm fdivp st(1),st(0)
+
+            if (sign == -1)
+            {
+                asm fldz
+                asm fsubrp st(1),st(0)
+            }
+
+            asm les bx, [dest]
+            asm fstp tbyte ptr es:[bx]
+
+            return dest;
+    }

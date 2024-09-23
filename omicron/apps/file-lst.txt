@@ -1,0 +1,6 @@
+gdev16
+gfx
+bf2
+skeyb
+! nla glink
+@ --w2

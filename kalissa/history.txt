@@ -1,0 +1,105 @@
+** Kalissa Version 0.11 (KS-0-11.RP):
+Floating point constants supported.
+
+** Kalissa Version 0.10 (KS-0-10.RP):
+color-layer
+Adaptive filter changed to multiplicative filter.
+
+** Kalissa Version 0.09 (KS-0-09.RP):
+Check syntax for new stuff
+bf3
+
+** Kalissa Version 0.08 (KS-0-08.RP):
+
+Additive and subtractive blending supported for images, attribute is called
+(redundantly) additive. Blending system changed, now the percentile of blend
+is used to lower or raise the intensity of the source image, you can use a
+slash to specify the intensity of the background image, the "reverse-order"
+attribute can be used to reverse the images when using subtractive blending.
+Red, Green and Blue attributes added to change each component range. Filters
+edge-enhance and edge-detect added. "first" attribute added to force certain
+post-draws be pre-draws.
+
+** Kalissa Version 0.07 (KS-0-07.RP):
+
+Attributes "ix, iy, iw, and ih" added to clip an area of an image, so far
+only BMPs are supported. Attributes 'tcolor' and 'pcolor' added, the first
+one is the transparent color, and the second is the primary color to be
+modified or drawn, both work with images, faders and mirrors. New object
+'fader' added to fade a rectangular area, also 'mirror' that is used to do
+vertical or horizontal flips. Attribute "blend" added to the image inline,
+the first form uses a boolean to indicate if the image should be blended at
+75%, the second forms specified the percent of blending. If a delayed filter
+was used with the 'as' attribute, the filter would never be drawn, this bug
+has been fixed. Hidden option -bp added to indicate the usage of Becky. The
+attribute "s-tcolor" added to set a transparent SCREEN color when drawing
+images that also have transparency. Object 'sprayer' added to make an area
+look a bit sprayed. The "value" attribute is optional, if you wish just put
+the string literal and Kalissa will understand. The tab meta char can be
+used to put four spaces or longtab for eight space. Attribute "align" added
+to align text (only BF2!!) alignment can be left, right, justify or center,
+attribute value MAX can be used in w and h to set to max parent length. New
+directions added "up", "down", "left" and "right" all of them work in the
+sprayer only (for now), bug with the fader was fixed (used height and a var
+to determine if vertical or horizontal fadin). When using faders, if the
+second percentile is omitted, a A2A fade is done instead of A2B. Attribute
+"i-pcolor" added to draw only one primary color of an image. New Object
+'negative' added (behaves like image) to make negative an area. The BMP
+writer fixed to add correct XPelsPerMeter and YPelsPerMeter values. The
+default font is now verdana.bf2.
+
+
+** Kalissa Version 0.06 (KS-0-06.RP):
+
+New attribute 'font-space' added to change the default BF2 font space,
+also new object named 'filter' has been added to apply graphics filter
+from 1x1 to 15x15, it's still beta but it works for now, just use the
+value to specify dimm and then each element, all separated by comma.
+Predefined filters: soften-lo, soften-med, sharpen-lo, sharpen-med
+and shatter. One last bug with the writer was fixed, now ALL widths
+are supported (even if not divisible by 4). Three types of filtering
+fully supported: normal, adaptive and incremental. New attribute "as"
+added to change behavior of the object. Filter layers supported. A
+very small bug when opening multiple surfaces in the same file has
+been fixed.
+
+** Kalissa Version 0.05 (KS-0-05.RP):
+
+A bug with the text has been fixed, now if relative Xs and Ys are given
+for a text box the thing will work correctly. If there is any error the
+surface won't be written to the disk (updated KS-TGA). Absolute percs
+supported for x/y. New patterns added (hline and vline) to make grids
+easier. Also, if XMS is not found the normal on-disk buffer is used. A
+small bug related to the BMP reading was fixed.
+
+** Kalissa Version 0.04 (KS-0-04.RP):
+
+New objects added inv-row and inv-column, both work exactly as row and
+column accordingly just that instead of moving down (column) or right (row)
+it moves up (inv-column) or left (inv-row). All ISO 8859-1 symbolic entities
+are now supported, plus the following: quot, lt, gt and amp.
+
+** Kalissa Version 0.03 (KS-0-03.RP):
+
+Now capable of reading bmp files and inlining them to the output using
+the object "inline-bmp", note that only 24 bit BMPs are allowed also
+the width and height must NOT exceed 32767. There was a bug when the
+BF2 text was used and character above 127 were in the string, a simple
+sign thing, it's fixed. The Kalissa TGA Writer has been updated, now
+the BMP-24 format is supported, to select it just add the output format
+name in parenthesis at the end of the surface definition. The double
+quote can now be used with the &quote; meta character.
+
+** Kalissa Version 0.02 (KS-0-02.RP):
+
+Bug fixed when drawing text and the justifiying algo doesn't work.
+Absolute percentiles now supported for width/height, just type %%
+instead of just %. Relative width/height supported using -num.
+
+** Kalissa Version 0.01 (KS-0-01.RP):
+
+Able to format rectangles, columns, rows and two types of text,
+type BF2 and RFX. Produces 24-bit TrueVision Targa files, the
+width and height is not limited. RGB values can be inlined in
+the source using the <> operator. Uses the XMS helper to create
+the surface when XMS is available.

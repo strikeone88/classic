@@ -1,0 +1,267 @@
+(*
+    KS.SX
+
+    Kalissa Syntax
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+*)
+
+section lexicon
+{
+    private comment1:   "/*", "[.]", "*/";
+    private comment2:   "//", "[.]", "\n";
+    private blanks:     "[\t\n\v\f\r\s]", "[\t\n\v\f\r\s]";
+
+    public  ident:      "[A-Za-z_]", "[-A-Za-z0-9_]";
+    public  number:     "[0-9]", "[0-9]";
+    public  hexnum:     "#", "[0-9A-Fa-f]";
+
+    public  string1:    "\"", "[.]", "\"";
+    public  string2:    "\'", "[.]", "\'";
+
+    public  range-op:   "..";
+}
+
+section arrays
+{
+    keywords of ident =
+    {
+        "auto", "center", "void", "hollow", "solid", "pattern",
+        "single", "double", "surface", "shell", "rfx", "bf2", "font",
+        "rfx-face", "bf2-face", "face", "as", "max", "up", "down"
+    }
+
+    object-type of ident =
+    {
+        "rect", "column", "row", "text-bf2", "text-rfx", "inline-bmp",
+        "inv-column", "inv-row", "filter-layer", "filter", "text",
+        "fader", "mirror", "sprayer", "negative", "gray", "enhance",
+        "stretch", "color-layer"
+    }
+
+    attribute-name of ident =
+    {
+        "x", "y", "w", "h", "bg", "fg", "border", "h-margins", "v-margins",
+        "value", "font-space", "ix", "iy", "iw", "ih", "tcolor", "pcolor",
+        "dir", "blend", "s-tcolor", "align", "i-pcolor", "additive",
+        "reverse-order", "first"
+    }
+
+    color-name of ident =
+    {
+        "black", "blue", "green", "red", "white", "yellow"
+    }
+
+    pattern-name of ident =
+    {
+        "horz", "vert", "hline", "vline", "lrdiag", "rldiag"
+    }
+
+    output-format of ident =
+    {
+        "tga", "bmp"
+    }
+
+    predef-strings of ident =
+    {
+        "null", "soften-lo", "soften-med", "sharpen-lo", "sharpen-med",
+        "shatter", "edge-enhance", "edge-detect"
+    }
+
+    boolean of ident =
+    {
+        "false", "true"
+    }
+
+    align-mode of ident =
+    {
+        "left", "right", "justify"
+    }
+}
+
+section grammar
+{
+    translation-unit
+        :   modifier-spec-list surface-definition ";" statement-list
+        ;
+
+    statement-list
+        :   statement-list statement ";"
+        |
+        ;
+
+    statement
+        :   object-definition object-definition-list
+        |   modifier-spec
+        |   surface-definition
+        ;
+
+    modifier-spec-list
+        :   modifier-spec-list modifier-spec ";"
+        |
+        ;
+
+    modifier-spec <modifier>
+        :   "%" "rfx" ident string-literal
+        |   "%" "bf2" ident string-literal
+        |   "%" "font" ident string-literal
+        |   "%" "shell" string-literal
+        ;
+
+    surface-definition <surface_def>
+        :   "%" "surface" expression expression string-literal color-spec
+        |   "%" "surface" expression expression string-literal color-spec
+            "(" output-format ")"
+        ;
+
+    string-literal
+        :   single-string string-sequence
+        ;
+
+    string-sequence <append_string>
+        :   string-sequence string1
+        |   string-sequence string2
+        |
+        ;
+
+    single-string <set_string>
+        :   string1
+        |   string2
+        ;
+
+    object-definition-list
+        :   object-definition-list object-definition
+        |
+        ;
+
+    object-definition <destroy_object>
+        :   object-heading object-definition-block
+        ;
+
+    object-heading <make_object>
+        :   object-type "(" attribute-list ")"
+        |   object-type "(" ")"
+        |   object-type
+        ;
+
+    object-definition-block
+        :   "{" object-definition-list "}"
+        |   ":" object-definition
+        |
+        ;
+
+    attribute-list
+        :   attribute-list "," attribute
+        |   attribute
+        ;
+
+    attribute <set_attribute>
+        :   "value" ":" string-literal
+        |   "h-margins" ":" expr-pair
+        |   "v-margins" ":" expr-pair
+        |   "border" ":" border-value
+        |   "x" ":" coord-value
+        |   "y" ":" coord-value
+        |   "w" ":" dim-value
+        |   "h" ":" dim-value
+        |   "bg" ":" bg-value
+        |   "fg" ":" color-spec
+        |   "rfx-face" ":" ident
+        |   "bf2-face" ":" ident
+        |   "face" ":" ident
+        |   "font-space" ":" expression
+        |   "value" ":" predef-strings
+        |   "as" ":" "column"
+        |   "as" ":" "row"
+        |   "ix" ":" coord-value
+        |   "iy" ":" coord-value
+        |   "iw" ":" dim-value
+        |   "ih" ":" dim-value
+        |   "tcolor" ":" color-spec
+        |   "pcolor" ":" color-spec
+        |   "dir" ":" direction
+        |   "blend" ":" boolean
+        |   "blend" ":" expression "%"
+        |   "s-tcolor" ":" color-spec
+        |   string-literal
+        |   "align" ":" align-mode
+        |   "align" ":" center
+        |   "i-pcolor" ":" color-spec
+        |   "additive" ":" boolean
+        |   "reverse-order" ":" boolean
+        |   "blend" ":" expression "%" "/" expression "%"
+        |   "blend" ":" "/" expression "%"
+
+        |   "red" ":" expression range-op expression
+        |   "red" ":" expression
+
+        |   "green" ":" expression range-op expression
+        |   "green" ":" expression
+
+        |   "blue" ":" expression range-op expression
+        |   "blue" ":" expression
+
+        |   "first" ":" boolean
+
+        ;
+
+    coord-value <coord_value>
+        :   expression
+        |   percentile
+        |   center
+        |   auto
+        ;
+
+    percentile <set_percentile>
+        :   expression "%"
+        |   expression "%" "%"
+        ;
+
+    dim-value <dim_value>
+        :   percentile
+        |   expression
+        |   auto
+        |   "-" expression
+        |   max
+        ;
+
+    bg-value <bg_value>
+        :   "pattern" "(" pattern-name "," color-spec "," color-spec ")"
+        |   "pattern" "(" pattern-name "," color-spec "," color-spec "," expression ")"
+        |   "pattern" "(" pattern-name "," color-spec "," expression ")"
+        |   "solid" "(" color-spec ")"
+        |   "hollow"
+        ;
+
+    border-value <border_value>
+        :   "double" "(" color-spec ")"
+        |   "single" "(" color-spec ")"
+        |   "void"
+        ;
+
+    expr-pair
+        :   expression "," expression
+        ;
+
+    color-spec <color_spec>
+        :   "<" expr-pair "," expression ">"
+        |   color-name
+        |   hexnum
+        ;
+
+    expression <push_expr>
+        :   number
+        ;
+
+    direction <set_direction>
+        :   horz
+        |   vert
+        |   hline
+        |   vline
+        |   up
+        |   down
+        |   "left"
+        |   "right"
+        ;
+}

@@ -1,0 +1,283 @@
+RedStar Vanessa Version 0.03 Copyright (C) 2008 ilina@bloodykisses.zzn.com
+
+----- Sections -----
+
+Section _TEXT : Class 'CODE', Base 00000000, Length 16496
+  * START.OBJ        00000000 0000020e _TEXT 'CODE'
+  * CONSOLE.OBJ      0000020e 000003d8 _TEXT 'CODE'
+  * DEV.OBJ          000005e6 0000043a _TEXT 'CODE'
+  * INIT.OBJ         00000a20 00000267 _TEXT 'CODE'
+  * KEYB.OBJ         00000c87 0000063c _TEXT 'CODE'
+  * MAIN.OBJ         000012c3 000001f4 _TEXT 'CODE'
+  * MM.OBJ           000014b7 00000571 _TEXT 'CODE'
+  * PROCESS.OBJ      00001a28 00000854 _TEXT 'CODE'
+  * STRING.OBJ       0000227c 0000016e _TEXT 'CODE'
+  * TIME.OBJ         000023ea 000003ae _TEXT 'CODE'
+  * TIMER.OBJ        00002798 00000165 _TEXT 'CODE'
+  * VFPRINTF.OBJ     000028fd 0000069e _TEXT 'CODE'
+  * VIDEO.OBJ        00002f9b 00000291 _TEXT 'CODE'
+  * INTRFACE.OBJ     0000322c 000001ab _TEXT 'CODE'
+  * KIFACE.OBJ       000033d7 000007a7 _TEXT 'CODE'
+  * START.OBJ        00003b80 00000000 _DATA 'DATA'
+  * CONSOLE.OBJ      00003b80 00000004 _DATA 'DATA'
+  * DEV.OBJ          00003b90 00000008 _DATA 'DATA'
+  * INIT.OBJ         00003ba0 00000000 _DATA 'DATA'
+  * KEYB.OBJ         00003ba0 00000098 _DATA 'DATA'
+  * MAIN.OBJ         00003c40 00000000 _DATA 'DATA'
+  * MM.OBJ           00003c40 0000000c _DATA 'DATA'
+  * PROCESS.OBJ      00003c50 00000010 _DATA 'DATA'
+  * STRING.OBJ       00003c60 00000000 _DATA 'DATA'
+  * TIME.OBJ         00003c60 00000030 _DATA 'DATA'
+  * TIMER.OBJ        00003c90 00000004 _DATA 'DATA'
+  * VFPRINTF.OBJ     00003ca0 00000000 _DATA 'DATA'
+  * VIDEO.OBJ        00003ca0 00000004 _DATA 'DATA'
+  * INTRFACE.OBJ     00003cb0 00000008 _DATA 'DATA'
+  * KIFACE.OBJ       00003cc0 00000000 _DATA 'DATA'
+  * START.OBJ        00003cc0 00000000 _BSS 'BSS'
+  * CONSOLE.OBJ      00003cc0 0000002a _BSS 'BSS'
+  * DEV.OBJ          00003cf0 00000000 _BSS 'BSS'
+  * INIT.OBJ         00003cf0 0000000c _BSS 'BSS'
+  * KEYB.OBJ         00003d00 0000010c _BSS 'BSS'
+  * MAIN.OBJ         00003e10 00000000 _BSS 'BSS'
+  * MM.OBJ           00003e10 00000004 _BSS 'BSS'
+  * PROCESS.OBJ      00003e20 00000014 _BSS 'BSS'
+  * STRING.OBJ       00003e40 00000000 _BSS 'BSS'
+  * TIME.OBJ         00003e40 00000000 _BSS 'BSS'
+  * TIMER.OBJ        00003e40 00000000 _BSS 'BSS'
+  * VFPRINTF.OBJ     00003e40 00000020 _BSS 'BSS'
+  * VIDEO.OBJ        00003e60 00000000 _BSS 'BSS'
+  * INTRFACE.OBJ     00003e60 00000000 _BSS 'BSS'
+  * KIFACE.OBJ       00003e60 00000000 _BSS 'BSS'
+  * START.OBJ        00003e60 00000000 _CONST 'CONST'
+  * KEYB.OBJ         00003e60 00000004 _CONST 'CONST'
+  * MM.OBJ           00003e70 00000004 _CONST 'CONST'
+  * TIME.OBJ         00003e80 00000010 _CONST 'CONST'
+  * TIMER.OBJ        00003e90 00000004 _CONST 'CONST'
+  * START.OBJ        00003e94 00000000 _STRING 'STRING'
+  * CONSOLE.OBJ      00003e94 00000004 _STRING 'STRING'
+  * DEV.OBJ          00003e98 00000004 _STRING 'STRING'
+  * INIT.OBJ         00003e9c 0000006f _STRING 'STRING'
+  * KEYB.OBJ         00003f0c 00000007 _STRING 'STRING'
+  * MAIN.OBJ         00003f14 000000fe _STRING 'STRING'
+  * MM.OBJ           00004014 00000047 _STRING 'STRING'
+  * PROCESS.OBJ      0000405c 0000000d _STRING 'STRING'
+  * VFPRINTF.OBJ     0000406c 00000003 _STRING 'STRING'
+  * START.OBJ        00004070 00000000 _ENDSEG 'ENDSEG'
+
+----- Groups -----
+
+Group DGROUP Starts at 00000000
+  * START.OBJ        00000000 0000020e _TEXT 'CODE'
+  * CONSOLE.OBJ      0000020e 000003d8 _TEXT 'CODE'
+  * DEV.OBJ          000005e6 0000043a _TEXT 'CODE'
+  * INIT.OBJ         00000a20 00000267 _TEXT 'CODE'
+  * KEYB.OBJ         00000c87 0000063c _TEXT 'CODE'
+  * MAIN.OBJ         000012c3 000001f4 _TEXT 'CODE'
+  * MM.OBJ           000014b7 00000571 _TEXT 'CODE'
+  * PROCESS.OBJ      00001a28 00000854 _TEXT 'CODE'
+  * STRING.OBJ       0000227c 0000016e _TEXT 'CODE'
+  * TIME.OBJ         000023ea 000003ae _TEXT 'CODE'
+  * TIMER.OBJ        00002798 00000165 _TEXT 'CODE'
+  * VFPRINTF.OBJ     000028fd 0000069e _TEXT 'CODE'
+  * VIDEO.OBJ        00002f9b 00000291 _TEXT 'CODE'
+  * INTRFACE.OBJ     0000322c 000001ab _TEXT 'CODE'
+  * KIFACE.OBJ       000033d7 000007a7 _TEXT 'CODE'
+  * START.OBJ        00003b80 00000000 _DATA 'DATA'
+  * CONSOLE.OBJ      00003b80 00000004 _DATA 'DATA'
+  * DEV.OBJ          00003b90 00000008 _DATA 'DATA'
+  * INIT.OBJ         00003ba0 00000000 _DATA 'DATA'
+  * KEYB.OBJ         00003ba0 00000098 _DATA 'DATA'
+  * MAIN.OBJ         00003c40 00000000 _DATA 'DATA'
+  * MM.OBJ           00003c40 0000000c _DATA 'DATA'
+  * PROCESS.OBJ      00003c50 00000010 _DATA 'DATA'
+  * STRING.OBJ       00003c60 00000000 _DATA 'DATA'
+  * TIME.OBJ         00003c60 00000030 _DATA 'DATA'
+  * TIMER.OBJ        00003c90 00000004 _DATA 'DATA'
+  * VFPRINTF.OBJ     00003ca0 00000000 _DATA 'DATA'
+  * VIDEO.OBJ        00003ca0 00000004 _DATA 'DATA'
+  * INTRFACE.OBJ     00003cb0 00000008 _DATA 'DATA'
+  * KIFACE.OBJ       00003cc0 00000000 _DATA 'DATA'
+  * START.OBJ        00003cc0 00000000 _BSS 'BSS'
+  * CONSOLE.OBJ      00003cc0 0000002a _BSS 'BSS'
+  * DEV.OBJ          00003cf0 00000000 _BSS 'BSS'
+  * INIT.OBJ         00003cf0 0000000c _BSS 'BSS'
+  * KEYB.OBJ         00003d00 0000010c _BSS 'BSS'
+  * MAIN.OBJ         00003e10 00000000 _BSS 'BSS'
+  * MM.OBJ           00003e10 00000004 _BSS 'BSS'
+  * PROCESS.OBJ      00003e20 00000014 _BSS 'BSS'
+  * STRING.OBJ       00003e40 00000000 _BSS 'BSS'
+  * TIME.OBJ         00003e40 00000000 _BSS 'BSS'
+  * TIMER.OBJ        00003e40 00000000 _BSS 'BSS'
+  * VFPRINTF.OBJ     00003e40 00000020 _BSS 'BSS'
+  * VIDEO.OBJ        00003e60 00000000 _BSS 'BSS'
+  * INTRFACE.OBJ     00003e60 00000000 _BSS 'BSS'
+  * KIFACE.OBJ       00003e60 00000000 _BSS 'BSS'
+  * START.OBJ        00003e60 00000000 _CONST 'CONST'
+  * KEYB.OBJ         00003e60 00000004 _CONST 'CONST'
+  * MM.OBJ           00003e70 00000004 _CONST 'CONST'
+  * TIME.OBJ         00003e80 00000010 _CONST 'CONST'
+  * TIMER.OBJ        00003e90 00000004 _CONST 'CONST'
+  * START.OBJ        00003e94 00000000 _STRING 'STRING'
+  * CONSOLE.OBJ      00003e94 00000004 _STRING 'STRING'
+  * DEV.OBJ          00003e98 00000004 _STRING 'STRING'
+  * INIT.OBJ         00003e9c 0000006f _STRING 'STRING'
+  * KEYB.OBJ         00003f0c 00000007 _STRING 'STRING'
+  * MAIN.OBJ         00003f14 000000fe _STRING 'STRING'
+  * MM.OBJ           00004014 00000047 _STRING 'STRING'
+  * PROCESS.OBJ      0000405c 0000000d _STRING 'STRING'
+  * VFPRINTF.OBJ     0000406c 00000003 _STRING 'STRING'
+  * START.OBJ        00004070 00000000 _ENDSEG 'ENDSEG'
+
+----- Publics -----
+
+Source "START.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000001fa _TEXT _gCR0
+  * 000001fe _TEXT _sCR0
+  * 0000013f _TEXT _v86int
+  * 0000008d _TEXT _enable
+  * 00000091 _TEXT _save_state
+  * 0000008f _TEXT _disable
+  * 00000039 _TEXT _outportw
+  * 0000002d _TEXT _outportb
+  * 00000046 _TEXT _outportd
+  * 00000106 _TEXT _setvect
+  * 0000012c _TEXT _getvect
+  * 00000072 _TEXT _updateVideo
+  * 000000b6 _TEXT _switch_task
+  * 0000005d _TEXT _inportw
+  * 00000069 _TEXT _inportd
+  * 00000052 _TEXT _inportb
+
+Source "CONSOLE.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00000340 _TEXT _gotoxy
+  * 000002e0 _TEXT _setcolor
+  * 00000312 _TEXT _setcursor
+  * 0000036f _TEXT _wherex
+  * 0000038c _TEXT _wherey
+  * 0000023b _TEXT _set_vconsole
+  * 000005ab _TEXT _instalar_CON
+  * 000002b4 _TEXT _c_clrscr
+  * 0000020e _TEXT _init_vconsole
+  * 0000028d _TEXT _clrscr
+  * 000002f9 _TEXT _setbgcolor
+
+Source "DEV.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00000881 _TEXT _fwrite
+  * 00000926 _TEXT _fputc
+  * 000009ee _TEXT _fputs
+  * 00000600 _TEXT _clonar_descriptor
+  * 00000641 _TEXT _unlink_descriptor
+  * 0000084d _TEXT _fread
+  * 000006fd _TEXT _register_dev
+  * 00000686 _TEXT _get_dev
+  * 000008b5 _TEXT _fseek
+  * 000005e6 _TEXT _nuevo_descriptor
+  * 00000969 _TEXT _fgetc
+  * 000009c4 _TEXT _fgetd
+  * 0000099a _TEXT _fgetw
+  * 000007f0 _TEXT _devopen
+  * 000008e9 _TEXT _fclose
+  * 00000629 _TEXT _link_descriptor
+  * 0000079f _TEXT _unregister_dev
+
+Source "INIT.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00000a20 _TEXT _die
+  * 00003cf4 _BSS _kstd_in
+  * 00003cf8 _BSS _kstd_err
+  * 00000b19 _TEXT _iniciar_sistema
+  * 00003cf0 _BSS _kstd_out
+  * 00000ab1 _TEXT _int5_handler
+  * 00000a59 _TEXT _int0_handler
+  * 00000add _TEXT _int6_handler
+  * 00000b09 _TEXT _int7_handler
+  * 00000a85 _TEXT _int4_handler
+
+Source "KEYB.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00000cd4 _TEXT _getch
+  * 00000cb5 _TEXT _kbhit
+  * 00000d7c _TEXT _irq1_handler
+
+Source "MAIN.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000012c3 _TEXT _main
+
+Source "MM.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000018df _TEXT _free_process_memory
+  * 00001932 _TEXT _dump_mem_nodes
+  * 000016b1 _TEXT _kfree
+  * 0000163f _TEXT _kcalloc
+  * 000017d6 _TEXT _kcoreleft
+  * 0000185b _TEXT _chblkown
+  * 00003e10 _BSS _FIN_MEMORIA
+  * 000014c5 _TEXT _kmalloc
+  * 000014b7 _TEXT _start_mm
+  * 0000188b _TEXT _kmemp_used
+  * 00001832 _TEXT _kdcoreleft
+
+Source "PROCESS.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00001e0a _TEXT _link_process
+  * 00001a28 _TEXT _iniciar_proceso_k
+  * 00001af7 _TEXT _es_proceso_primario
+  * 00001fe7 _TEXT _critical
+  * 00001fd7 _TEXT _leave_critical
+  * 00001fed _TEXT _fspawnv
+  * 00002242 _TEXT _find_process_id
+  * 00001eae _TEXT _kill_process
+  * 00003e20 _BSS _kprocess
+  * 00001c4f _TEXT _new_process
+  * 00001bfa _TEXT _focus_process
+  * 00003e28 _BSS _process
+  * 00001bb3 _TEXT _get_resident
+  * 00003e2c _BSS _p_process
+  * 00001fd0 _TEXT _enter_critical
+  * 00001d2e _TEXT _release_parent
+  * 00001cce _TEXT _new_vconsole
+  * 00003e30 _BSS _w_process
+  * 00003c50 _DATA _resident
+  * 00001b41 _TEXT _find_process
+  * 00001d62 _TEXT _unlink_process
+  * 00001fa7 _TEXT _send_sig
+  * 00001b79 _TEXT _ffind_process
+  * 00003c5c _DATA _lock
+
+Source "STRING.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000022d3 _TEXT _strlen
+  * 0000227c _TEXT _memcpy
+  * 0000238c _TEXT _strlwr
+  * 000022b1 _TEXT _memset
+  * 000023ba _TEXT _strchr
+  * 000022fe _TEXT _strcmp
+  * 0000235d _TEXT _strupr
+
+Source "TIME.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00002499 _TEXT _packTime
+  * 00002480 _TEXT _getBin
+  * 0000261b _TEXT _gtime
+  * 000024d8 _TEXT _unpackTime
+
+Source "TIMER.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000027ae _TEXT _irq0_handler
+  * 00003c90 _DATA _tick_counter
+  * 00002798 _TEXT _ms2ticks
+
+Source "VFPRINTF.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 00002f63 _TEXT _printf
+  * 00002f31 _TEXT _fprintf
+  * 00002973 _TEXT _vfprintf
+  * 0000291c _TEXT _itoa
+  * 00002f48 _TEXT _vprintf
+  * 00002f7f _TEXT _eprintf
+
+Source "VIDEO.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000031c9 _TEXT __clrscr
+  * 00003197 _TEXT __gotoxy
+  * 000030da _TEXT __putch
+  * 00002fe7 _TEXT _actualizar_cursor
+  * 00002f9b _TEXT _configurar_cursor
+
+Source "INTRFACE.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000033aa _TEXT _getServiceInterface
+  * 0000325d _TEXT _registerInterface
+  * 00003322 _TEXT _unregisterInterface
+
+Source "KIFACE.OBJ" Translated by RedStar OBJ to VO Converter Version 0.01
+  * 000033d7 _TEXT _Kernel_Interface

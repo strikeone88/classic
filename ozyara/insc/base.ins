@@ -1,0 +1,2948 @@
+(*
+    BASE.INS
+
+    Ozyara Base Instruction Set Version 0.03
+
+    This file contains the information about all the x86 instructions
+    that Ozyara is able to understand.
+
+    Processor Range:    80186 to 80686, Pentium II, Pentium III, AMD-3D
+    Capabilities List:  FPU, MMX, MMX2, SSE, SSE2, 3DNow!
+
+    Copyright (C) 2007-2014 RedStar Technologies
+    Written by J. Palencia (ciachn@gmail.com)
+*)
+
+(****************************************************************************
+****************************** 186-386 **************************************
+****************************************************************************)
+
+AAA
+{
+    none            0x37
+}
+
+AAD
+{
+    none            0xD5 0x0A
+    imm8            0xD5 ib
+}
+
+AAM
+{
+    none            0xD4 0x0A
+    imm8            0xD4 ib
+}
+
+AAS
+{
+    none            0x3F
+}
+
+ADC
+{
+    AL,imm8         0x14 ib
+    AX,imm16        0x15 iw
+    EAX,imm32       0x15 id
+    r/m8,imm8       0x80 /2 ib
+    r/m16,imm16     0x81 /2 iw
+    r/m32,imm32     0x81 /2 id
+    r/m16,imm8      0x83 /2 ib
+    r/m32,imm8      0x83 /2 ib
+    r/m8,r8         0x10 /r
+    r/m16,r16       0x11 /r
+    r/m32,r32       0x11 /r
+    r8,r/m8         0x12 /r
+    r16,r/m16       0x13 /r
+    r32,r/m32       0x13 /r
+}
+
+ADD
+{
+    AL,imm8         0x04 ib
+    AX,imm16        0x05 iw
+    EAX,imm32       0x05 id
+    r/m8,imm8       0x80 /0 ib
+    r/m16,imm16     0x81 /0 iw
+    r/m32,imm32     0x81 /0 id
+    r/m16,imm8      0x83 /0 ib
+    r/m32,imm8      0x83 /0 ib
+    r/m8,r8         0x00 /r
+    r/m16,r16       0x01 /r
+    r/m32,r32       0x01 /r
+    r8,r/m8         0x02 /r
+    r16,r/m16       0x03 /r
+    r32,r/m32       0x03 /r
+}
+
+AND
+{
+    AL,imm8         0x24 ib
+    AX,imm16        0x25 iw
+    EAX,imm32       0x25 id
+    r/m8,imm8       0x80 /4 ib
+    r/m16,imm16     0x81 /4 iw
+    r/m32,imm32     0x81 /4 id
+    r/m16,imm8      0x83 /4 ib
+    r/m32,imm8      0x83 /4 ib
+    r/m8,r8         0x20 /r
+    r/m16,r16       0x21 /r
+    r/m32,r32       0x21 /r
+    r8,r/m8         0x22 /r
+    r16,r/m16       0x23 /r
+    r32,r/m32       0x23 /r
+}
+
+ARPL
+{
+    r/m16,r16       0x63 /r
+}
+
+BOUND
+{
+    r16,mem32       0x62 /r
+    r32,mem64       0x62 /r
+}
+
+BSF
+{
+    r16,r/m16       0x0F 0xBC /r
+    r32,r/m32       0x0F 0xBC /r
+}
+
+BSR
+{
+    r16,r/m16       0x0F 0xBD /r
+    r32,r/m32       0x0F 0xBD /r
+}
+
+BT
+{
+    r/m16,r16       0x0F 0xA3 /r
+    r/m32,r32       0x0F 0xA3 /r
+    r/m16,imm8      0x0F 0xBA /4 ib
+    r/m32,imm8      0x0F 0xBA /4 ib
+}
+
+BTC
+{
+    r/m16,r16       0x0F 0xBB /r
+    r/m32,r32       0x0F 0xBB /r
+    r/m16,imm8      0x0F 0xBA /7 ib
+    r/m32,imm8      0x0F 0xBA /7 ib
+}
+
+BTR
+{
+    r/m16,r16       0x0F 0xB3 /r
+    r/m32,r32       0x0F 0xB3 /r
+    r/m16,imm8      0x0F 0xBA /6 ib
+    r/m32,imm8      0x0F 0xBA /6 ib
+}
+
+BTS
+{
+    r/m16,r16       0x0F 0xAB /r
+    r/m32,r32       0x0F 0xAB /r
+    r/m16,imm8      0x0F 0xBA /5 ib
+    r/m32,imm8      0x0F 0xBA /5 ib
+}
+
+CALL
+{
+    rel16           0xE8 cw
+    rel32           0xE8 cd
+
+    r/m16           0xFF /2
+    r/m32           0xFF /2
+
+    far32           0xFF /3
+    far48           0xFF /3
+
+    ptr32           0x9A pd rm
+    ptr48           0x9A pf pm
+
+    eptr32          0x9A pd rm
+    eptr48          0x9A pf pm
+}
+
+CBW
+{
+    none            0x98 rm
+}
+
+CWDE
+{
+    none            0x98 pm
+}
+
+CLC
+{
+    none            0xF8
+}
+
+CLD
+{
+    none            0xFC
+}
+
+CLI
+{
+    none            0xFA
+}
+
+CLTS
+{
+    none            0x0F 0x06
+}
+
+CMC
+{
+    none            0xF5
+}
+
+CMP
+{
+    AL,imm8         0x3C ib
+    AX,imm16        0x3D iw
+    EAX,imm32       0x3D id
+    r/m8,imm8       0x80 /7 ib
+    r/m16,imm16     0x81 /7 iw
+    r/m32,imm32     0x81 /7 id
+    r/m16,imm8      0x83 /7 ib
+    r/m32,imm8      0x83 /7 ib
+    r/m8,r8         0x38 /r
+    r/m16,r16       0x39 /r
+    r/m32,r32       0x39 /r
+    r8,r/m8         0x3A /r
+    r16,r/m16       0x3B /r
+    r32,r/m32       0x3B /r
+}
+
+CMPSB
+{
+    none            0xA6
+}
+
+CMPSW
+{
+    none            0xA7 rm
+}
+
+CMPSD
+{
+    none            0xA7 pm
+}
+
+CWD
+{
+    none            0x99 rm
+}
+
+CDQ
+{
+    none            0x99 pm
+}
+
+DAA
+{
+    none            0x27
+}
+
+DAS
+{
+    none            0x2F
+}
+
+DEC
+{
+    r16             0x48 +rw
+    r32             0x48 +rd
+    r/m8            0xFE /1
+    r/m16           0xFF /1
+    r/m32           0xFF /1
+}
+
+DIV
+{
+    AL,r/m8         0xF6 /6
+    AX,r/m16        0xF7 /6
+    EAX,r/m32       0xF7 /6
+    r/m8            0xF6 /6
+    r/m16           0xF7 /6
+    r/m32           0xF7 /6
+}
+
+ENTER
+{
+    imm16,imm8      0xC8 iw ib
+}
+
+(HLT HALT)
+{
+    none            0xF4
+}
+
+IDIV
+{
+    r/m8            0xF6 /7
+    r/m16           0xF7 /7
+    r/m32           0xF7 /7
+}
+
+IMUL
+{
+    r/m8            0xF6 /5
+    r/m16           0xF7 /5
+    r/m32           0xF7 /5
+    r16,r/m16       0x0F 0xAF /r
+    r32,r/m32       0x0F 0xAF /r
+    r16,r/m16,imm8  0x6B /r ib
+    r32,r/m32,imm8  0x6B /r ib
+    r16,imm8        0x6B /d ib
+    r32,imm8        0x6B /d ib
+    r16,r/m16,imm16 0x69 /r iw
+    r32,r/m32,imm32 0x69 /r id
+    r16,imm16       0x69 /d iw
+    r32,imm32       0x69 /d id
+}
+
+IN
+{
+    AL,imm8         0xE4 ib
+    AX,imm8         0xE5 ib rm
+    EAX,imm8        0xE5 ib pm
+    AL,DX           0xEC
+    AX,DX           0xED rm
+    EAX,DX          0xED pm
+}
+
+INC
+{
+    r16             0x40 +rw
+    r32             0x40 +rd
+    r/m8            0xFE /0
+    r/m16           0xFF /0
+    r/m32           0xFF /0
+}
+
+INSB
+{
+    none            0x6C
+}
+
+INSW
+{
+    none            0x6D rm
+}
+
+INSD
+{
+    none            0x6D pm
+}
+
+INT
+{
+    3               0xCC
+    imm8            0xCD ib
+}
+
+INTO
+{
+    none            0xCE
+}
+
+IRET
+{
+    none            0xCF rm
+}
+
+IRETD
+{
+    none            0xCF pm
+}
+
+JCXZ
+{
+    rel8            0xE3 cb rm
+}
+
+JECXZ
+{
+    rel8            0xE3 cb pm
+}
+
+JO
+{
+    rel8            0x70 cb
+    rel16           0x0F 0x80 cw
+    rel32           0x0F 0x80 cd
+}
+
+JNO
+{
+    rel8            0x71 cb
+    rel16           0x0F 0x81 cw
+    rel32           0x0F 0x81 cd
+}
+
+(JB JC JNAE)
+{
+    rel8            0x72 cb
+    rel16           0x0F 0x82 cw
+    rel32           0x0F 0x82 cd
+}
+
+(JAE JNB JNC)
+{
+    rel8            0x73 cb
+    rel16           0x0F 0x83 cw
+    rel32           0x0F 0x83 cd
+}
+
+(JE JZ)
+{
+    rel8            0x74 cb
+    rel16           0x0F 0x84 cw
+    rel32           0x0F 0x84 cd
+}
+
+(JNE JNZ)
+{
+    rel8            0x75 cb
+    rel16           0x0F 0x85 cw
+    rel32           0x0F 0x85 cd
+}
+
+(JBE JNA)
+{
+    rel8            0x76 cb
+    rel16           0x0F 0x86 cw
+    rel32           0x0F 0x86 cd
+}
+
+(JA JNBE)
+{
+    rel8            0x77 cb
+    rel16           0x0F 0x87 cw
+    rel32           0x0F 0x87 cd
+}
+
+JS
+{
+    rel8            0x78 cb
+    rel16           0x0F 0x88 cw
+    rel32           0x0F 0x88 cd
+}
+
+JNS
+{
+    rel8            0x79 cb
+    rel16           0x0F 0x89 cw
+    rel32           0x0F 0x89 cd
+}
+
+(JP JPE)
+{
+    rel8            0x7A cb
+    rel16           0x0F 0x8A cw
+    rel32           0x0F 0x8A cd
+}
+
+(JNP JPO)
+{
+    rel8            0x7B cb
+    rel16           0x0F 0x8B cw
+    rel32           0x0F 0x8B cd
+}
+
+(JL JNGE)
+{
+    rel8            0x7C cb
+    rel16           0x0F 0x8C cw
+    rel32           0x0F 0x8C cd
+}
+
+(JGE JNL)
+{
+    rel8            0x7D cb
+    rel16           0x0F 0x8D cw
+    rel32           0x0F 0x8D cd
+}
+
+(JLE JNG)
+{
+    rel8            0x7E cb
+    rel16           0x0F 0x8E cw
+    rel32           0x0F 0x8E cd
+}
+
+(JG JNLE)
+{
+    rel8            0x7F cb
+    rel16           0x0F 0x8F cw
+    rel32           0x0F 0x8F cd
+}
+
+JMP
+{
+    rel8            0xEB cb
+    rel16           0xE9 cw
+    rel32           0xE9 cd
+
+    imm16           0x68 iw 0xC3
+    imm32           0x68 id 0xC3
+
+    r/m16           0xFF /4
+    r/m32           0xFF /4
+
+    far32           0xFF /5
+    far48           0xFF /5
+
+    ptr32           0xEA pd rm
+    ptr48           0xEA pf pm
+
+    eptr32          0xEA pd rm
+    eptr48          0xEA pf pm
+}
+
+JMPS
+{
+    rel8            0xEB cb
+}
+
+LAHF
+{
+    none            0x9F
+}
+
+LAR
+{
+    r16,r/m16       0x0F 0x02 /r
+    r32,r/m32       0x0F 0x02 /r
+}
+
+LEA
+{
+    r16,i16moffs    0xB8 +rw idw
+    r32,i32moffs    0xB8 +rd idd
+
+    r16,m           0x8D /r
+    r32,m           0x8D /r
+}
+
+LEAVE
+{
+    none            0xC9
+}
+
+LGDT
+{
+    mem48           0x0F 0x01 /2
+}
+
+LIDT
+{
+    mem48           0x0F 0x01 /3
+}
+
+LDS
+{
+    r16,mem32       0xC5 /r rm
+    r32,mem48       0xC5 /r pm
+}
+
+LSS
+{
+    r16,mem32       0x0F 0xB2 /r rm
+    r32,mem48       0x0F 0xB2 /r pm
+}
+
+LES
+{
+    r16,mem32       0xC4 /r rm
+    r32,mem48       0xC4 /r pm
+}
+
+LFS
+{
+    r16,mem32       0x0F 0xB4 /r rm
+    r32,mem48       0x0F 0xB4 /r pm
+}
+
+LGS
+{
+    r16,mem32       0x0F 0xB5 /r rm
+    r32,mem48       0x0F 0xB5 /r pm
+}
+
+LLDT
+{
+    r/m16           0x0F 0x00 /2
+}
+
+LOCK
+{
+    none            0xF0
+}
+
+LMSW
+{
+    r/m16           0x0F 0x01 /6
+}
+
+
+LODSB
+{
+    none            0xAC
+}
+
+LODSW
+{
+    none            0xAD rm
+}
+
+LODSD
+{
+    none            0xAD pm
+}
+
+(LOOPNE LOOPNZ)
+{
+    rel8            0xE0 cb
+}
+
+(LOOPE LOOPZ)
+{
+    rel8            0xE1 cb
+}
+
+LOOP
+{
+    rel8            0xE2 cb
+}
+
+LOOPD
+{
+    rel8            0xE2 cb pm
+}
+
+LSL
+{
+    r16,r/m16       0x0F 0x03 /r
+    r32,r/m32       0x0F 0x03 /r
+}
+
+LTR
+{
+    r/m16           0x0F 0x00 /3 xm
+}
+
+MOV
+{
+    r/m8,r8         0x88 /r
+    r/m16,r16       0x89 /r
+    r/m32,r32       0x89 /r
+    r8,r/m8         0x8A /r
+    r16,r/m16       0x8B /r
+    r32,r/m32       0x8B /r
+    r/m16,sreg      0x8C /r
+    sreg,r/m16      0x8E /r
+    r/m32,sreg      0x8C /r
+    sreg,r/m32      0x8E /r
+    AL,moffs8       0xA0 db
+    AX,moffs16      0xA1 dw
+    EAX,moffs32     0xA1 dd
+    moffs8,AL       0xA2 db
+    moffs16,AX      0xA3 dw
+    moffs32,EAX     0xA3 dd
+    r8,imm8         0xB0 +rb ib
+    r16,imm16       0xB8 +rw iw
+    r32,imm32       0xB8 +rd id
+    r/m8,imm8       0xC6 /r ib
+    r/m16,imm16     0xC7 /r iw
+    r/m32,imm32     0xC7 /r id
+
+    r32*,cr         0x0F 0x20 /r xm
+    cr,r32*         0x0F 0x22 /r xm
+    r32*,dr         0x0F 0x21 /r xm
+    dr,r32*         0x0F 0x23 /r xm
+    r32*,tr         0x0F 0x24 /r xm
+    tr,r32*         0x0F 0x26 /r xm
+}
+
+MOVSB
+{
+    none            0xA4
+}
+
+MOVSW
+{
+    none            0xA5 rm
+}
+
+MOVSD
+{
+    none            0xA5 pm
+}
+
+MOVSX
+{
+    r16,r/m8        0x0F 0xBE /r
+    r32,r/m8        0x0F 0xBE /r
+    r32,r/m16       0x0F 0xBF /r
+}
+
+MOVZX
+{
+    r16,r/m8        0x0F 0xB6 /r
+    r32,r/m8        0x0F 0xB6 /r
+    r32,r/m16       0x0F 0xB7 /r
+}
+
+MUL
+{
+    AL,r/m8         0xF6 /4
+    AX,r/m16        0xF7 /4
+    EAX,r/m32       0xF7 /4
+    r/m8            0xF6 /4
+    r/m16           0xF7 /4
+    r/m32           0xF7 /4
+}
+
+NEG
+{
+    r/m8            0xF6 /3
+    r/m16           0xF7 /3
+    r/m32           0xF7 /3
+}
+
+NOP
+{
+    none            0x90
+}
+
+NOT
+{
+    r/m8            0xF6 /2
+    r/m16           0xF7 /2
+    r/m32           0xF7 /2
+}
+
+OR
+{
+    AL,imm8         0x0C ib
+    AX,imm16        0x0D iw
+    EAX,imm32       0x0D id
+    r/m8,imm8       0x80 /1 ib
+    r/m16,imm16     0x81 /1 iw
+    r/m32,imm32     0x81 /1 id
+    r/m16,imm8      0x83 /1 ib
+    r/m32,imm8      0x83 /1 ib
+    r/m8,r8         0x08 /r
+    r/m16,r16       0x09 /r
+    r/m32,r32       0x09 /r
+    r8,r/m8         0x0A /r
+    r16,r/m16       0x0B /r
+    r32,r/m32       0x0B /r
+}
+
+OUT
+{
+    imm8,AL         0xE6 ib
+    imm8,AX         0xE7 ib rm
+    imm8,EAX        0xE7 ib pm
+    DX,AL           0xEE
+    DX,AX           0xEF rm
+    DX,EAX          0xEF pm
+}
+
+OUTSB
+{
+    none            0x6E
+}
+
+OUTSW
+{
+    none            0x6F rm
+}
+
+OUTSD
+{
+    none            0x6F pm
+}
+
+POP
+{
+    mem16           0x8F /0
+    mem32           0x8F /0
+    r16             0x58 +rw
+    r32             0x58 +rd
+    DS              0x1F
+    ES              0x07
+    SS              0x17
+    FS              0x0F 0xA1
+    GS              0x0F 0xA9
+}
+
+POPA
+{
+    none            0x61 rm
+}
+
+POPAD
+{
+    none            0x61 pm
+}
+
+POPF
+{
+    none            0x9D rm
+}
+
+POPFD
+{
+    none            0x9D pm
+}
+
+PUSH
+{
+    mem16           0xFF /6
+    mem32           0xFF /6
+    r16             0x50 +rw
+    r32             0x50 +rd
+    imm8            0x6A ib
+    imm16           0x68 iw
+    imm32           0x68 id
+    CS              0x0E
+    SS              0x16
+    DS              0x1E
+    ES              0x06
+    FS              0x0F 0xA0
+    GS              0x0F 0xA8
+}
+
+PUSHA
+{
+    none            0x60 rm
+}
+
+PUSHAD
+{
+    none            0x60 pm
+}
+
+PUSHF
+{
+    none            0x9C rm
+}
+
+PUSHFD
+{
+    none            0x9C pm
+}
+
+RCL
+{
+    r/m8,1          0xD0 /2
+    r/m8,CL         0xD2 /2
+    r/m8,imm8       0xC0 /2 ib
+    r/m16,1         0xD1 /2
+    r/m16,CL        0xD3 /2
+    r/m16,imm8      0xC1 /2 ib
+    r/m32,1         0xD1 /2
+    r/m32,CL        0xD3 /2
+    r/m32,imm8      0xC1 /2 ib
+}
+
+RCR
+{
+    r/m8,1          0xD0 /3
+    r/m8,CL         0xD2 /3
+    r/m8,imm8       0xC0 /3 ib
+    r/m16,1         0xD1 /3
+    r/m16,CL        0xD3 /3
+    r/m16,imm8      0xC1 /3 ib
+    r/m32,1         0xD1 /3
+    r/m32,CL        0xD3 /3
+    r/m32,imm8      0xC1 /3 ib
+}
+
+ROL
+{
+    r/m8,1          0xD0 /0
+    r/m8,CL         0xD2 /0
+    r/m8,imm8       0xC0 /0 ib
+    r/m16,1         0xD1 /0
+    r/m16,CL        0xD3 /0
+    r/m16,imm8      0xC1 /0 ib
+    r/m32,1         0xD1 /0
+    r/m32,CL        0xD3 /0
+    r/m32,imm8      0xC1 /0 ib
+}
+
+ROR
+{
+    r/m8,1          0xD0 /1
+    r/m8,CL         0xD2 /1
+    r/m8,imm8       0xC0 /1 ib
+    r/m16,1         0xD1 /1
+    r/m16,CL        0xD3 /1
+    r/m16,imm8      0xC1 /1 ib
+    r/m32,1         0xD1 /1
+    r/m32,CL        0xD3 /1
+    r/m32,imm8      0xC1 /1 ib
+}
+
+(REP REPE REPZ)
+{
+    none            0xF3
+}
+
+(REPNE REPNZ)
+{
+    none            0xF2
+}
+
+(RETN RET)
+{
+    imm16           0xC2 iw
+    none            0xC3
+}
+
+RETF
+{
+    imm16           0xCA iw
+    none            0xCB
+}
+
+SAHF
+{
+    none            0x9E
+}
+
+(SAL SHL)
+{
+    r/m8,1          0xD0 /4
+    r/m8,CL         0xD2 /4
+    r/m8,imm8       0xC0 /4 ib
+    r/m16,1         0xD1 /4
+    r/m16,CL        0xD3 /4
+    r/m16,imm8      0xC1 /4 ib
+    r/m32,1         0xD1 /4
+    r/m32,CL        0xD3 /4
+    r/m32,imm8      0xC1 /4 ib
+}
+
+SAR
+{
+    r/m8,1          0xD0 /7
+    r/m8,CL         0xD2 /7
+    r/m8,imm8       0xC0 /7 ib
+    r/m16,1         0xD1 /7
+    r/m16,CL        0xD3 /7
+    r/m16,imm8      0xC1 /7 ib
+    r/m32,1         0xD1 /7
+    r/m32,CL        0xD3 /7
+    r/m32,imm8      0xC1 /7 ib
+}
+
+SHR
+{
+    r/m8,1          0xD0 /5
+    r/m8,CL         0xD2 /5
+    r/m8,imm8       0xC0 /5 ib
+    r/m16,1         0xD1 /5
+    r/m16,CL        0xD3 /5
+    r/m16,imm8      0xC1 /5 ib
+    r/m32,1         0xD1 /5
+    r/m32,CL        0xD3 /5
+    r/m32,imm8      0xC1 /5 ib
+}
+
+SBB
+{
+    AL,imm8         0x1C ib
+    AX,imm16        0x1D iw
+    EAX,imm32       0x1D id
+    r/m8,imm8       0x80 /3 ib
+    r/m16,imm16     0x81 /3 iw
+    r/m32,imm32     0x81 /3 id
+    r/m16,imm8      0x83 /3 ib
+    r/m32,imm8      0x83 /3 ib
+    r/m8,r8         0x18 /r
+    r/m16,r16       0x19 /r
+    r/m32,r32       0x19 /r
+    r8,r/m8         0x1A /r
+    r16,r/m16       0x1B /r
+    r32,r/m32       0x1B /r
+}
+
+SCASB
+{
+    none            0xAE
+}
+
+SCASW
+{
+    none            0xAF rm
+}
+
+SCASD
+{
+    none            0xAF pm
+}
+
+SETO
+{
+    r/m8            0x0F 0x90 /0
+}
+
+SETNO
+{
+    r/m8            0x0F 0x91 /0
+}
+
+(SETB SETC SETNAE)
+{
+    r/m8            0x0F 0x92 /0
+}
+
+(SETAE SETNB SETNC)
+{
+    r/m8            0x0F 0x93 /0
+}
+
+(SETE SETZ)
+{
+    r/m8            0x0F 0x94 /0
+}
+
+(SETNE SETNZ)
+{
+    r/m8            0x0F 0x95 /0
+}
+
+(SETBE SETNA)
+{
+    r/m8            0x0F 0x96 /0
+}
+
+(SETA SETNBE)
+{
+    r/m8            0x0F 0x97 /0
+}
+
+SETS
+{
+    r/m8            0x0F 0x98 /0
+}
+
+SETNS
+{
+    r/m8            0x0F 0x99 /0
+}
+
+(SETP SETPE)
+{
+    r/m8            0x0F 0x9A /0
+}
+
+(SETNP SETPO)
+{
+    r/m8            0x0F 0x9B /0
+}
+
+(SETL SETNGE)
+{
+    r/m8            0x0F 0x9C /0
+}
+
+(SETGE SETNL)
+{
+    r/m8            0x0F 0x9D /0
+}
+
+(SETLE SETNG)
+{
+    r/m8            0x0F 0x9E /0
+}
+
+(SETG SETNLE)
+{
+    r/m8            0x0F 0x9F /0
+}
+
+SGDT
+{
+    m               0x0F 0x01 /0
+}
+
+SIDT
+{
+    m               0x0F 0x01 /1
+}
+
+SHLD
+{
+    r/m16,r16,imm8  0x0F 0xA4 /r ib
+    r/m32,r32,imm8  0x0F 0xA4 /r ib
+    r/m16,r16,CL    0x0F 0xA5 /r
+    r/m32,r32,CL    0x0F 0xA5 /r
+}
+
+SHRD
+{
+    r/m16,r16,imm8  0x0F 0xAC /r ib
+    r/m32,r32,imm8  0x0F 0xAC /r ib
+    r/m16,r16,CL    0x0F 0xAD /r
+    r/m32,r32,CL    0x0F 0xAD /r
+}
+
+SLDT
+{
+    r/m16           0x0F 0x00 /0
+}
+
+SMSW
+{
+    r/m16           0x0F 0x01 /4
+}
+
+STC
+{
+    none            0xF9
+}
+
+STD
+{
+    none            0xFD
+}
+
+STI
+{
+    none            0xFB
+}
+
+STOSB
+{
+    none            0xAA
+}
+
+STOSW
+{
+    none            0xAB rm
+}
+
+STOSD
+{
+    none            0xAB pm
+}
+
+STR
+{
+    r/m16           0x0F 0x00 /1
+}
+
+SUB
+{
+    AL,imm8         0x2C ib
+    AX,imm16        0x2D iw
+    EAX,imm32       0x2D id
+    r/m8,imm8       0x80 /5 ib
+    r/m16,imm16     0x81 /5 iw
+    r/m32,imm32     0x81 /5 id
+    r/m16,imm8      0x83 /5 ib
+    r/m32,imm8      0x83 /5 ib
+    r/m8,r8         0x28 /r
+    r/m16,r16       0x29 /r
+    r/m32,r32       0x29 /r
+    r8,r/m8         0x2A /r
+    r16,r/m16       0x2B /r
+    r32,r/m32       0x2B /r
+}
+
+TEST
+{
+    AL,imm8         0xA8 ib
+    AX,imm16        0xA9 iw
+    EAX,imm32       0xA9 id
+    r/m8,imm8       0xF6 /0 ib
+    r/m16,imm16     0xF7 /0 iw
+    r/m32,imm32     0xF7 /0 id
+    r/m8,r8         0x84 /r
+    r/m16,r16       0x85 /r
+    r/m32,r32       0x85 /r
+}
+
+VERR
+{
+    r/m16           0x0F 0x00 /4
+}
+
+VERW
+{
+    r/m16           0x0F 0x00 /5
+}
+
+(FWAIT WAIT)
+{
+    none            0x9B
+}
+
+XCHG
+{
+    AX,r16          0x90 +rw
+    r16,AX          0x90 +rw
+    EAX,r32         0x90 +rd
+    r32,EAX         0x90 +rd
+    r/m8,r8         0x86 /r
+    r8,r/m8         0x86 /r
+    r/m16,r16       0x87 /r
+    r16,r/m16       0x87 /r
+    r/m32,r32       0x87 /r
+    r32,r/m32       0x87 /r
+}
+
+(XLAT XLATB)
+{
+    none            0xD7
+}
+
+XOR
+{
+    AL,imm8         0x34 ib
+    AX,imm16        0x35 iw
+    EAX,imm32       0x35 id
+    r/m8,imm8       0x80 /6 ib
+    r/m16,imm16     0x81 /6 iw
+    r/m32,imm32     0x81 /6 id
+    r/m16,imm8      0x83 /6 ib
+    r/m32,imm8      0x83 /6 ib
+    r/m8,r8         0x30 /r
+    r/m16,r16       0x31 /r
+    r/m32,r32       0x31 /r
+    r8,r/m8         0x32 /r
+    r16,r/m16       0x33 /r
+    r32,r/m32       0x33 /r
+}
+
+(SALC SETALC)
+{
+    none            0xD6
+}
+
+(****************************************************************************
+******************************** 486 ****************************************
+****************************************************************************)
+
+BSWAP
+{
+    r/m32           0x0F /1
+}
+
+CMPXCHG
+{
+    r/m8,r8         0x0F 0xB0 /r
+}
+
+INVD
+{
+    none            0x0F 0x08
+}
+
+INVLPG
+{
+    m               0x0F 0x01 /7
+}
+
+RSM
+{
+    none            0x0F 0xAA
+}
+
+WBINVD
+{
+    none            0x0F 0x09
+}
+
+XADD
+{
+    r/m8,r8         0x0F 0xC0 /r
+}
+
+CPUID
+{
+    none            0x0F 0xA2
+    imm32           0xC7 0xC0 id 0x0F 0xA2 pm
+}
+
+(****************************************************************************
+******************************** FPU ****************************************
+****************************************************************************)
+
+FLD
+{
+    mem32           0xD9 /0 xm
+    fpreg*          0xD9 /0 xm
+    mem80           0xDB /5 xm
+    mem64           0xDD /0 xm
+}
+
+FLDENV
+{
+    m               0xD9 /4 xm
+}
+
+FLDCW
+{
+    m               0xD9 /5 xm
+}
+
+FILD
+{
+    mem32           0xDB /0 xm
+    mem16           0xDF /0 xm
+    mem64           0xDF /5 xm
+}
+
+FADD
+{
+    mem32           0xD8 /0 xm
+    st0,fpreg*      0xD8 /0 xm
+    fpreg*          0xD8 /0 xm
+    mem64           0xDC /0 xm
+    fpreg*,st0      0xDC /0 xm
+}
+
+FADDP
+{
+    fpreg*,st0      0xDE /0 xm
+    fpreg*          0xDE /0 xm
+}
+
+FIADD
+{
+    mem16           0xDE /0 xm
+    mem32           0xDA /0 xm
+}
+
+FBLD
+{
+    mem80           0xDF /4 xm
+}
+
+FBSTP
+{
+    mem80           0xDF /6 xm
+}
+
+FXCH
+{
+    fpreg*          0xD9 /1 xm
+}
+
+FSAVE
+{
+    mem80           0x9B 0xDD /6 xm
+}
+
+FNSAVE
+{
+    mem80           0xDD /6 xm
+}
+
+FRSTOR
+{
+    mem80           0xDD /4 xm
+}
+
+FFREE
+{
+    fpreg*          0xDD /0 xm
+}
+
+FMUL
+{
+    mem32           0xD8 /1 xm
+    st0,fpreg*      0xD8 /1 xm
+    mem64           0xDC /1 xm
+    fpreg*,st0      0xDC /1 xm
+}
+
+FMULP
+{
+    fpreg*,st0      0xDE /1 xm
+}
+
+FIMUL
+{
+    mem32           0xDA /1 xm
+    mem16           0xDE /1 xm
+}
+
+FSUB
+{
+    mem32           0xD8 /4 xm
+    mem64           0xDC /4 xm
+    st0,fpreg*      0xD8 /4 xm
+    fpreg*,st0      0xDC /5 xm
+}
+
+FSUBR
+{
+    mem32           0xD8 /5 xm
+    mem64           0xDC /5 xm
+    st0,fpreg*      0xD8 /5 xm
+    fpreg*,st0      0xDC /4 xm
+}
+
+FSUBRP
+{
+    fpreg*,st0      0xDE /4 xm
+}
+
+FSUBP
+{
+    fpreg*,st0      0xDE /5 xm
+}
+
+FISUB
+{
+    mem32           0xDA /4 xm
+    mem16           0xDE /4 xm
+}
+
+FISUBR
+{
+    mem32           0xDA /5 xm
+    mem16           0xDE /5 xm
+}
+
+FDIV
+{
+    mem32           0xD8 /6 xm
+    mem64           0xDC /6 xm
+    st0,fpreg*      0xD8 /6 xm
+    fpreg*,st0      0xDC /7 xm
+}
+
+FDIVR
+{
+    mem32           0xD8 /7 xm
+    mem64           0xDC /7 xm
+    st0,fpreg*      0xD8 /7 xm
+    fpreg*,st0      0xDC /6 xm
+}
+
+FDIVRP
+{
+    fpreg*,st0      0xDE /6 xm
+}
+
+FDIVP
+{
+    fpreg*,st0      0xDE /7 xm
+}
+
+FIDIV
+{
+    mem32           0xDA /6 xm
+    mem16           0xDE /6 xm
+}
+
+FIDIVR
+{
+    mem32           0xDA /7 xm
+    mem16           0xDE /7 xm
+}
+
+FST
+{
+    mem32           0xD9 /2 xm
+    mem64           0xDD /2 xm
+    fpreg*          0xDD /2 xm
+}
+
+FSTP
+{
+    mem32           0xD9 /3 xm
+    mem64           0xDD /3 xm
+    mem80           0xDB /7 xm
+    fpreg*          0xDD /3 xm
+}
+
+FSTENV
+{
+    m               0x9B 0xD9 /6 xm
+}
+
+FNSTENV
+{
+    m               0xD9 /6 xm
+}
+
+FSTCW
+{
+    m               0x9B 0xD9 /7 xm
+}
+
+FNSTCW
+{
+    m               0xD9 /7 xm
+}
+
+FSTSW
+{
+    m               0x9B 0xDD /7 xm
+    AX              0x9B 0xDF 0xE0 xm
+}
+
+FNSTSW
+{
+    m               0xDD /7 xm
+    AX              0xDF 0xE0 xm
+}
+
+FIST
+{
+    mem16           0xDF /2 xm
+    mem32           0xDB /2 xm
+}
+
+FISTP
+{
+    mem16           0xDF /3 xm
+    mem32           0xDB /3 xm
+    mem64           0xDF /7 xm
+}
+
+FNOP                { none 0xD9 0xD0 }
+FCHS                { none 0xD9 0xE0 }
+FABS                { none 0xD9 0xE1 }
+FTST                { none 0xD9 0xE4 }
+FXAM                { none 0xD9 0xE5 }
+FLD1                { none 0xD9 0xE8 }
+FLDL2T              { none 0xD9 0xE9 }
+FLDL2E              { none 0xD9 0xEA }
+FLDPI               { none 0xD9 0xEB }
+FLDLG2              { none 0xD9 0xEC }
+FLDLN2              { none 0xD9 0xED }
+FLDZ                { none 0xD9 0xEE }
+F2XM1               { none 0xD9 0xF0 }
+FYL2X               { none 0xD9 0xF1 }
+FPTAN               { none 0xD9 0xF2 }
+FPATAN              { none 0xD9 0xF3 }
+FXTRACT             { none 0xD9 0xF4 }
+FPREM1              { none 0xD9 0xF5 }
+FDECSTP             { none 0xD9 0xF6 }
+FINCSTP             { none 0xD9 0xF7 }
+FPREM               { none 0xD9 0xF8 }
+FYL2XP1             { none 0xD9 0xF9 }
+FSQRT               { none 0xD9 0xFA }
+FSINCOS             { none 0xD9 0xFB }
+FRNDINT             { none 0xD9 0xFC }
+FSCALE              { none 0xD9 0xFD }
+FSIN                { none 0xD9 0xFE }
+FCOS                { none 0xD9 0xFF }
+FNCLEX              { none 0xDB 0xE2 }
+FNINIT              { none 0xDB 0xE3 }
+FCLEX               { none 0x9B 0xDB 0xE2 }
+FINIT               { none 0x9B 0xDB 0xE3 }
+
+(****************************************************************************
+***************************** MMX and MMX2 **********************************
+****************************************************************************)
+
+EMMS
+{
+    none            0x0F 0x77
+}
+
+MOVD
+{
+    mmxreg,r/m32    0x0F 0x6E /r xm
+    r/m32,mmxreg    0x0F 0x7E /r xm
+
+    xmmreg,r/m32    0x66 0x0F 0x6E /r xm
+    r/m32,xmmreg    0x66 0x0F 0x7E /r xm
+}
+
+MOVQ
+{
+    mmxreg,r/m64    0x0F 0x6F /r xm
+    r/m64,mmxreg    0x0F 0x7F /r xm
+}
+
+PACKSSDW
+{
+    mmxreg,r/m64    0x0F 0x6B /r
+    xmmreg,r/m128   0x66 0x0F 0x6B /r
+}
+
+PACKSSWB
+{
+    mmxreg,r/m64    0x0F 0x63 /r
+    xmmreg,r/m128   0x66 0x0F 0x63 /r
+}
+
+PACKUSWB
+{
+    mmxreg,r/m64    0x0F 0x67 /r
+    xmmreg,r/m128   0x66 0x0F 0x67 /r
+}
+
+PADDB
+{
+    mmxreg,r/m64    0x0F 0xFC /r
+    xmmreg,r/m128   0x66 0x0F 0xFC /r
+}
+
+PADDW
+{
+    mmxreg,r/m64    0x0F 0xFD /r
+    xmmreg,r/m128   0x66 0x0F 0xFD /r
+}
+
+PADDD
+{
+    mmxreg,r/m64    0x0F 0xFE /r
+    xmmreg,r/m128   0x66 0x0F 0xFE /r
+}
+
+PADDSB
+{
+    mmxreg,r/m64    0x0F 0xEC /r
+    xmmreg,r/m128   0x66 0x0F 0xEC /r
+}
+
+PADDSW
+{
+    mmxreg,r/m64    0x0F 0xED /r
+    xmmreg,r/m128   0x66 0x0F 0xED /r
+}
+
+PADDUSB
+{
+    mmxreg,r/m64    0x0F 0xDC /r
+    xmmreg,r/m128   0x66 0x0F 0xDC /r
+}
+
+PADDUSW
+{
+    mmxreg,r/m64    0x0F 0xDD /r
+    xmmreg,r/m128   0x66 0x0F 0xDD /r
+}
+
+PADDSIW
+{
+    mmxreg,r/m64    0x0F 0x51 /r
+}
+
+PAND
+{
+    mmxreg,r/m64    0x0F 0xDB /r
+    xmmreg,r/m128   0x66 0x0F 0xDB /r
+}
+
+(PNAND PANDN)
+{
+    mmxreg,r/m64    0x0F 0xDF /r
+    xmmreg,r/m128   0x66 0x0F 0xDF /r
+}
+
+PCMPEQB
+{
+    mmxreg,r/m64    0x0F 0x74 /r
+    xmmreg,r/m128   0x66 0x0F 0x74 /r
+}
+
+PCMPEQW
+{
+    mmxreg,r/m64    0x0F 0x75 /r
+    xmmreg,r/m128   0x66 0x0F 0x75 /r
+}
+
+PCMPEQD
+{
+    mmxreg,r/m64    0x0F 0x76 /r
+    xmmreg,r/m128   0x66 0x0F 0x76 /r
+}
+
+PCMPGTB
+{
+    mmxreg,r/m64    0x0F 0x64 /r
+    xmmreg,r/m128   0x66 0x0F 0x64 /r
+}
+
+PCMPGTW
+{
+    mmxreg,r/m64    0x0F 0x65 /r
+    xmmreg,r/m128   0x66 0x0F 0x65 /r
+}
+
+PCMPGTD
+{
+    mmxreg,r/m64    0x0F 0x66 /r
+    xmmreg,r/m128   0x66 0x0F 0x66 /r
+}
+
+PMADDWD
+{
+    mmxreg,r/m64    0x0F 0xF5 /r
+    xmmreg,r/m128   0x66 0x0F 0xF5 /r
+}
+
+PMULHW
+{
+    mmxreg,r/m64    0x0F 0xE5 /r
+    xmmreg,r/m128   0x66 0x0F 0xE5 /r
+}
+
+PMULLW
+{
+    mmxreg,r/m64    0x0F 0xD5 /r
+    xmmreg,r/m128   0x66 0x0F 0xD5 /r
+}
+
+POR
+{
+    mmxreg,r/m64    0x0F 0xEB /r
+    xmmreg,r/m128   0x66 0x0F 0xEB /r
+}
+
+
+PSLLW
+{
+    mmxreg,r/m64    0x0F 0xF1 /r
+    mmxreg*,imm8    0x0F 0x71 /6 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xF1 /r
+    xmmreg*,imm8    0x66 0x0F 0x71 /6 ib
+}
+
+PSLLD
+{
+    mmxreg,r/m64    0x0F 0xF2 /r
+    mmxreg*,imm8    0x0F 0x72 /6 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xF2 /r
+    xmmreg*,imm8    0x66 0x0F 0x72 /6 ib
+}
+
+PSLLQ
+{
+    mmxreg,r/m64    0x0F 0xF3 /r
+    mmxreg*,imm8    0x0F 0x73 /6 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xF3 /r
+    xmmreg*,imm8    0x66 0x0F 0x73 /6 ib
+}
+
+PSRAW
+{
+    mmxreg,r/m64    0x0F 0xE1 /r
+    mmxreg*,imm8    0x0F 0x71 /4 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xE1 /r
+    xmmreg*,imm8    0x66 0x0F 0x71 /4 ib
+}
+
+PSRAD
+{
+    mmxreg,r/m64    0x0F 0xE2 /r
+    mmxreg*,imm8    0x0F 0x72 /4 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xE2 /r
+    xmmreg*,imm8    0x66 0x0F 0x72 /4 ib
+}
+
+PSRLW
+{
+    mmxreg,r/m64    0x0F 0xD1 /r
+    mmxreg*,imm8    0x0F 0x71 /2 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xD1 /r
+    xmmreg*,imm8    0x66 0x0F 0x71 /2 ib
+}
+
+PSRLD
+{
+    mmxreg,r/m64    0x0F 0xD2 /r
+    mmxreg*,imm8    0x0F 0x72 /2 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xD2 /r
+    xmmreg*,imm8    0x66 0x0F 0x72 /2 ib
+}
+
+PSRLQ
+{
+    mmxreg,r/m64    0x0F 0xD3 /r
+    mmxreg*,imm8    0x0F 0x73 /2 ib
+
+    xmmreg,r/m128   0x66 0x0F 0xD3 /r
+    xmmreg*,imm8    0x66 0x0F 0x73 /2 ib
+}
+
+PSUBB
+{
+    mmxreg,r/m64    0x0F 0xF8 /r
+    xmmreg,r/m128   0x66 0x0F 0xF8 /r
+}
+
+PSUBW
+{
+    mmxreg,r/m64    0x0F 0xF9 /r
+    xmmreg,r/m128   0x66 0x0F 0xF9 /r
+}
+
+PSUBD
+{
+    mmxreg,r/m64    0x0F 0xFA /r
+    xmmreg,r/m128   0x66 0x0F 0xFA /r
+}
+
+PSUBSB
+{
+    mmxreg,r/m64    0x0F 0xE8 /r
+    xmmreg,r/m128   0x66 0x0F 0xE8 /r
+}
+
+PSUBSW
+{
+    mmxreg,r/m64    0x0F 0xE9 /r
+    xmmreg,r/m128   0x66 0x0F 0xE9 /r
+}
+
+PSUBUSB
+{
+    mmxreg,r/m64    0x0F 0xD8 /r
+    xmmreg,r/m128   0x66 0x0F 0xD8 /r
+}
+
+PSUBUSW
+{
+    mmxreg,r/m64    0x0F 0xD9 /r
+    xmmreg,r/m128   0x66 0x0F 0xD9 /r
+}
+
+PUNPCKHBW
+{
+    mmxreg,r/m64    0x0F 0x68 /r
+    xmmreg,r/m128   0x66 0x0F 0x68 /r
+}
+
+PUNPCKHWD
+{
+    mmxreg,r/m64    0x0F 0x69 /r
+    xmmreg,r/m128   0x66 0x0F 0x69 /r
+}
+
+PUNPCKHDQ
+{
+    mmxreg,r/m64    0x0F 0x6A /r
+    xmmreg,r/m128   0x66 0x0F 0x6A /r
+}
+
+PUNPCKLBW
+{
+    mmxreg,r/m64    0x0F 0x60 /r
+    xmmreg,r/m128   0x66 0x0F 0x60 /r
+}
+
+PUNPCKLWD
+{
+    mmxreg,r/m64    0x0F 0x61 /r
+    xmmreg,r/m128   0x66 0x0F 0x61 /r
+}
+
+PUNPCKLDQ
+{
+    mmxreg,r/m64    0x0F 0x62 /r
+    xmmreg,r/m128   0x66 0x0F 0x62 /r
+}
+
+PXOR
+{
+    mmxreg,r/m64    0x0F 0xEF /r
+    xmmreg,r/m128   0x66 0x0F 0xEF /r
+}
+
+(****************************************************************************
+**************************** 586 (Pentium+) *********************************
+****************************************************************************)
+
+WRMSR
+{
+    none            0x0F 0x30
+}
+
+RDTSC
+{
+    none            0x0F 0x31
+}
+
+RDMSR
+{
+    none            0x0F 0x32
+}
+
+(****************************************************************************
+*************************** 686 (Pentium Pro+) ******************************
+****************************************************************************)
+
+CMOVO
+{
+    r16,r/m16       0x0F 0x40 /r
+    r32,r/m32       0x0F 0x40 /r
+}
+
+CMOVNO
+{
+    r16,r/m16       0x0F 0x41 /r
+    r32,r/m32       0x0F 0x41 /r
+}
+
+(CMOVB CMOVC CMOVNAE)
+{
+    r16,r/m16       0x0F 0x42 /r
+    r32,r/m32       0x0F 0x42 /r
+}
+
+(CMOVAE CMOVNB CMOVNC)
+{
+    r16,r/m16       0x0F 0x43 /r
+    r32,r/m32       0x0F 0x43 /r
+}
+
+(CMOVE CMOVZ)
+{
+    r16,r/m16       0x0F 0x44 /r
+    r32,r/m32       0x0F 0x44 /r
+}
+
+(CMOVNE CMOVNZ)
+{
+    r16,r/m16       0x0F 0x45 /r
+    r32,r/m32       0x0F 0x45 /r
+}
+
+(CMOVBE CMOVNA)
+{
+    r16,r/m16       0x0F 0x46 /r
+    r32,r/m32       0x0F 0x46 /r
+}
+
+(CMOVA CMOVNBE)
+{
+    r16,r/m16       0x0F 0x47 /r
+    r32,r/m32       0x0F 0x47 /r
+}
+
+CMOVS
+{
+    r16,r/m16       0x0F 0x48 /r
+    r32,r/m32       0x0F 0x48 /r
+}
+
+CMOVNS
+{
+    r16,r/m16       0x0F 0x49 /r
+    r32,r/m32       0x0F 0x49 /r
+}
+
+(CMOVP CMOVPE)
+{
+    r16,r/m16       0x0F 0x4A /r
+    r32,r/m32       0x0F 0x4A /r
+}
+
+(CMOVNP CMOVPO)
+{
+    r16,r/m16       0x0F 0x4B /r
+    r32,r/m32       0x0F 0x4B /r
+}
+
+(CMOVL CMOVNGE)
+{
+    r16,r/m16       0x0F 0x4C /r
+    r32,r/m32       0x0F 0x4C /r
+}
+
+(CMOVGE CMOVNL)
+{
+    r16,r/m16       0x0F 0x4D /r
+    r32,r/m32       0x0F 0x4D /r
+}
+
+(CMOVLE CMOVNG)
+{
+    r16,r/m16       0x0F 0x4E /r
+    r32,r/m32       0x0F 0x4E /r
+}
+
+(CMOVG CMOVNLE)
+{
+    r16,r/m16       0x0F 0x4F /r
+    r32,r/m32       0x0F 0x4F /r
+}
+
+CMPXCHG8B
+{
+    mem64           0x0F 0xC7 /r
+}
+
+(FCMOVB FCMOVNAE)
+{
+    fpreg*          0xDA /0 xm
+}
+
+(FCMOVE)
+{
+    fpreg*          0xDA /1 xm
+}
+
+(FCMOVBE FCMOVNA)
+{
+    fpreg*          0xDA /2 xm
+}
+
+(FCMOVU)
+{
+    fpreg*          0xDA /3 xm
+}
+
+(FCMOVNB FCMOVAE)
+{
+    fpreg*          0xDB /0 xm
+}
+
+(FCMOVNE)
+{
+    fpreg*          0xDB /1 xm
+}
+
+(FCMOVNBE FCMOVA)
+{
+    fpreg*          0xDB /2 xm
+}
+
+(FCMOVNU)
+{
+    fpreg*          0xDB /3 xm
+}
+
+FCOM
+{
+    mem32           0xD8 /2 xm
+    mem64           0xDC /2 xm
+    fpreg*          0xD8 /2 xm
+}
+
+FCOMP
+{
+    mem32           0xD8 /3 xm
+    mem64           0xDC /3 xm
+    fpreg*          0xD8 /3 xm
+}
+
+FUCOMI
+{
+    fpreg*          0xDB /5 xm
+}
+
+FCOMPP
+{
+    none            0xDE 0xD9
+}
+
+FUCOMIP
+{
+    fpreg*          0xDF /5 xm
+}
+
+FCOMI
+{
+    fpreg*          0xDB /6 xm
+}
+
+FCOMIP
+{
+    fpreg*          0xDF /6 xm
+}
+
+FICOM
+{
+    mem32           0xDA /2 xm
+    mem16           0xDE /2 xm
+}
+
+FICOMP
+{
+    mem32           0xDA /3 xm
+    mem16           0xDE /3 xm
+}
+
+FUCOMPP
+{
+    none            0xDA 0xE9
+}
+
+FUCOM
+{
+    fpreg*          0xDD /4 xm
+}
+
+FUCOMP
+{
+    fpreg*          0xDD /5 xm
+}
+
+RDPMC
+{
+    none            0x0F 0x33
+}
+
+UD2
+{
+    none            0x0F 0x0B
+}
+
+(****************************************************************************
+***************************** Pentium II+ ***********************************
+****************************************************************************)
+
+FXSAVE
+{
+    m               0x0F 0xAE /0
+}
+
+FXRSTOR
+{
+    m               0x0F 0xAE /1
+}
+
+SYSENTER
+{
+    none            0x0F 0x34
+}
+
+SYSEXIT
+{
+    none            0x0F 0x35
+}
+
+(****************************************************************************
+*********************************** SSE *************************************
+****************************************************************************)
+
+ADDPS
+{
+    xmmreg,r/m128   0x0F 0x58 /r
+}
+
+ADDSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x58 /r
+}
+
+(ANDNPS NANDPS)
+{
+    xmmreg,r/m128   0x0F 0x55 /r
+}
+
+ANDPS
+{
+    xmmreg,r/m128   0x0F 0x54 /r
+}
+
+CMPEQPS
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x00
+}
+
+(CMPLTPS CMPNGEPS)
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x01
+}
+
+(CMPLEPS CMPNGPS)
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x02
+}
+
+CMPUNORDPS
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x03
+}
+
+CMPNEQPS
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x04
+}
+
+(CMPNLTPS CMPGEPS)
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x05
+}
+
+(CMPNLEPS CMPGPS)
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x06
+}
+
+CMPORDPS
+{
+    xmmreg,r/m128   0x0F 0xC2 /r 0x07
+}
+
+CMPEQSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x00
+}
+
+(CMPLTSS CMPNGESS)
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x01
+}
+
+(CMPLESS CMPNGSS)
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x02
+}
+
+CMPUNORDSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x03
+}
+
+CMPNEQSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x04
+}
+
+(CMPNLTSS CMPGESS)
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x05
+}
+
+(CMPNLESS CMPGSS)
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x06
+}
+
+CMPORDSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0xC2 /r 0x07
+}
+
+COMISS
+{
+    xmmreg,r/m128   0x0F 0x2F /r
+}
+
+CVTPI2PS
+{
+    xmmreg,r/m64    0x0F 0x2A /r
+}
+
+CVTPS2PI
+{
+    mmxreg,r128/m64 0x0F 0x2D /r
+}
+
+CVTSI2SS
+{
+    xmmreg,r/m32    0xF3 0x0F 0x2A /r xm
+}
+
+CVTSS2SI
+{
+    r32,r128/m32    0xF3 0x0F 0x2D /r xm
+}
+
+CVTTPS2PI
+{
+    mmxreg,r128/m64 0x0F 0x2C /r
+}
+
+CVTTSS2SI
+{
+    r32,r128/m32    0xF3 0x0F 0x2C /r xm
+}
+
+DIVPS
+{
+    xmmreg,r/m128   0x0F 0x5E /r
+}
+
+DIVSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x5E /r
+}
+
+LDMXCSR
+{
+    mem32           0x0F 0xAE /2 xm
+}
+
+MASKMOVQ
+{
+    mmxreg,r/m64    0x0F 0xF7 /r
+}
+
+MAXPS
+{
+    xmmreg,r/m128   0x0F 0x5F /r
+}
+
+MAXSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x5F /r
+}
+
+MINPS
+{
+    xmmreg,r/m128   0x0F 0x5D /r
+}
+
+MINSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x5D /r
+}
+
+MOVAPS
+{
+    xmmreg,r/m128   0x0F 0x28 /r
+    r/m128,xmmreg   0x0F 0x29 /r
+}
+
+MOVHLPS
+{
+    xmmreg,xmmreg*  0x0F 0x12 /r
+}
+
+MOVLHPS
+{
+    xmmreg,xmmreg*  0x0F 0x16 /r
+}
+
+MOVHPS
+{
+    xmmreg,mem128   0x0F 0x16 /r
+    mem128,xmmreg   0x0F 0x17 /r
+}
+
+MOVLPS
+{
+    xmmreg,mem128   0x0F 0x12 /r
+    mem128,xmmreg   0x0F 0x13 /r
+}
+
+MOVMSKPS
+{
+    r32,xmmreg*     0x0F 0x50 /r xm
+}
+
+MOVNTPS
+{
+    mem128,xmmreg   0x0F 0x2B /r
+}
+
+MOVNTQ
+{
+    r/m64,mmxreg    0x0F 0xE7 /r
+}
+
+MOVSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x10 /r
+    r/m128,xmmreg   0xF3 0x0F 0x11 /r
+}
+
+MOVUPS
+{
+    xmmreg,r/m128   0x0F 0x10 /r
+    r/m128,xmmreg   0x0F 0x11 /r
+}
+
+MULPS
+{
+    xmmreg,r/m128   0x0F 0x59 /r
+}
+
+MULSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x59 /r
+}
+
+ORPS
+{
+    xmmreg,r/m128   0x0F 0x56 /r
+}
+
+PAVGB
+{
+    mmxreg,r128/m64 0x0F 0xE0 /r
+}
+
+PAVGW
+{
+    mmxreg,r128/m64 0x0F 0xE3 /r
+}
+
+PEXTRW
+{
+    r32,mmxreg*,imm8 0x0F 0xC5 /r ib xm
+}
+
+PINSRW
+{
+    mmxreg,r32/m16,imm8 0x0F 0xC4 /r ib xm
+}
+
+PMAXSW
+{
+    mmxreg,r/m64    0x0F 0xEE /r
+}
+
+PMOVMSKB
+{
+    r/m32,mmxreg    0x0F 0xD7 /r xm
+}
+
+PMINUB
+{
+    mmxreg,r/m64    0x0F 0xDA /r
+}
+
+PMAXUB
+{
+    mmxreg,r/m64    0x0F 0xDE /r
+}
+
+PMINSW
+{
+    mmxreg,r/m64    0x0F 0xEA /r
+}
+
+PMULHUW
+{
+    mmxreg,r/m64    0x0F 0xE4 /r
+}
+
+PREFETCHNTA
+{
+    m               0x0F 0x18 /0
+}
+
+(PREFETCH0 PREFETCHT0)
+{
+    m               0x0F 0x18 /1
+}
+
+(PREFETCH1 PREFETCHT1)
+{
+    m               0x0F 0x18 /2
+}
+
+(PREFETCH2 PREFETCHT2)
+{
+    m               0x0F 0x18 /3
+}
+
+PSADBW
+{
+    mmxreg,r/m64    0x0F 0xF6 /r
+}
+
+PSHUFW
+{
+    mmxreg,r/m64,imm8   0x0F 0x70 /r ib
+}
+
+RCPPS
+{
+    xmmreg,r/m128   0x0F 0x53 /r
+    xmmreg,r/m128   0xF3 0x0F 0x53 /r
+}
+
+RCPSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x53 /r
+}
+
+RSQRTPS
+{
+    xmmreg,r/m128   0x0F 0x52 /r
+}
+
+RSQRTSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x52 /r
+}
+
+STMXCSR
+{
+    mem32           0x0F 0xAE /3 xm
+}
+
+SQRTPS
+{
+    xmmreg,r/m128   0x0F 0x51 /r
+}
+
+SQRTSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x51 /r
+}
+
+SHUFPS
+{
+    xmmreg,r/m128,imm8  0x0F 0xC6 /r ib
+}
+
+SFENCE
+{
+    none            0x0F 0xAE 0xF8
+}
+
+SUBPS
+{
+    xmmreg,r/m128   0x0F 0x5C /r
+}
+
+SUBSS
+{
+    xmmreg,r/m128   0xF3 0x0F 0x5C /r
+}
+
+UNPCKLPS
+{
+    xmmreg,r/m128   0x0F 0x14 /r
+}
+
+UNPCKHPS
+{
+    xmmreg,r/m128   0x0F 0x15 /r
+}
+
+UCOMISS
+{
+    xmmreg,r/m128   0x0F 0x2E /r
+}
+
+XORPS
+{
+    xmmreg,r/m128   0x0F 0x57 /r
+}
+
+(****************************************************************************
+********************************** SSE2 *************************************
+****************************************************************************)
+
+ADDPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x58 /r
+}
+
+ADDSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x58 /r
+}
+
+(ANDNPD NANDPD)
+{
+    xmmreg,r/m128   0x66 0x0F 0x55 /r
+}
+
+ANDPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x54 /r
+}
+
+CMPEQPD
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x00
+}
+
+(CMPLTPD CMPNGEPD)
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x01
+}
+
+(CMPLEPD CMPNGPD)
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x02
+}
+
+CMPUNORDPD
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x03
+}
+
+CMPNEQPD
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x04
+}
+
+(CMPNLTPD CMPGEPD)
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x05
+}
+
+(CMPNLEPD CMPGPD)
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x06
+}
+
+CMPORDPD
+{
+    xmmreg,r/m128   0x66 0x0F 0xC2 /r 0x07
+}
+
+CMPEQSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x00
+}
+
+(CMPLTSD CMPNGESD)
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x01
+}
+
+(CMPLESD CMPNGSD)
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x02
+}
+
+CMPUNORDSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x03
+}
+
+CMPNEQSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x04
+}
+
+(CMPNLTSD CMPGESD)
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x05
+}
+
+(CMPNLESD CMPGSD)
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x06
+}
+
+CMPORDSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0xC2 /r 0x07
+}
+
+COMISD
+{
+    xmmreg,r/m128   0x66 0x0F 0x2F /r
+}
+
+UCOMISD
+{
+    xmmreg,r/m128   0x66 0x0F 0x2E /r
+}
+
+XORPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x57 /r
+}
+
+DIVPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x5E /r
+}
+
+DIVSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x5E /r
+}
+
+SUBPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x5C /r
+}
+
+SUBSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x5C /r
+}
+
+MASKMOVDQU
+{
+    xmmreg,r/m128   0x66 0x0F 0xF7 /r
+}
+
+MAXPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x5F /r
+}
+
+MAXSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x5F /r
+}
+
+MINPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x5D /r
+}
+
+MINSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x5D /r
+}
+
+MOVAPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x28 /r
+    r/m128,xmmreg   0x66 0x0F 0x29 /r
+}
+
+
+MOVHPD
+{
+    xmmreg,mem128   0x66 0x0F 0x16 /r
+    mem128,xmmreg   0x66 0x0F 0x17 /r
+}
+
+MOVLPD
+{
+    xmmreg,mem128   0x66 0x0F 0x12 /r
+    mem128,xmmreg   0x66 0x0F 0x13 /r
+}
+
+MOVMSKPD
+{
+    r32,xmmreg*     0x66 0x0F 0x50 /r xm
+}
+
+MOVNTPD
+{
+    mem128,xmmreg   0x66 0x0F 0x2B /r
+}
+
+MOVUPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x10 /r
+    r/m128,xmmreg   0x66 0x0F 0x11 /r
+}
+
+MULPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x59 /r
+}
+
+MULSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x59 /r
+}
+
+ORPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x56 /r
+}
+
+PSUBQ
+{
+    xmmreg,r/m128   0x66 0x0F 0xFB /r
+}
+
+SQRTPD
+{
+    xmmreg,r/m128   0x66 0x0F 0x51 /r
+}
+
+SQRTSD
+{
+    xmmreg,r/m128   0xF2 0x0F 0x51 /r
+}
+
+SHUFPD
+{
+    xmmreg,r/m128,imm8  0x66 0x0F 0xC6 /r ib
+}
+
+LFENCE
+{
+    none            0x0F 0xAE 0xE8
+}
+
+MFENCE
+{
+    none            0x0F 0xAE 0xF0
+}
+
+CLFLUSH
+{
+    m               0x0F 0xAE /7
+}
+
+PAUSE
+{
+    none            0xF3 0x90
+}
+
+MOVDQA
+{
+    xmmreg,r/m64    0x66 0x0F 0x6F /r xm
+    r/m64,xmmreg    0x66 0x0F 0x7F /r xm
+}
+
+MOVDQU
+{
+    xmmreg,r/m64    0xF3 0x0F 0x6F /r xm
+    r/m64,xmmreg    0xF3 0x0F 0x7F /r xm
+}
+
+(****************************************************************************
+******************************* AMD-3D **************************************
+****************************************************************************)
+
+FEMMS
+{
+    none            0x0F 0x0E
+}
+
+
+PAVGUSB
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xBF
+}
+
+PF2ID
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x1D
+}
+
+PFACC
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xAE
+}
+
+PFADD
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x9E
+}
+
+PFCMPEQ
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xB0
+}
+
+PFCMPGE
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x90
+}
+
+PFCMPGT
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xA0
+}
+
+PFMAX
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xA4
+}
+
+PFMIN
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x94
+}
+
+PFMUL
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xB4
+}
+
+PFRCPIT1
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xA6
+}
+
+PFRCPIT2
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xB6
+}
+
+PFRSQIT1
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xA7
+}
+
+PFRCP
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x96
+}
+
+PFRSQRT
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x97
+}
+
+PFSUB
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x9A
+}
+
+PFSUBR
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xAA
+}
+
+PI2FD
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x0D
+}
+
+PMULHRW
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xB7
+}
+
+PREFETCH
+{
+    mem8            0x0F 0x0D /0
+}
+
+PREFETCHW
+{
+    mem8            0x0F 0x0D /1
+}
+
+(****************************************************************************
+******************************* 3DNow! **************************************
+****************************************************************************)
+
+PF2IW
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x1C
+}
+
+PFNACC
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x8A
+}
+
+PFPNACC
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x8E
+}
+
+PI2FW
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0x0C
+}
+
+PSWAPD
+{
+    mmxreg,r/m64    0x0F 0x0F /r 0xBB
+}

@@ -1,0 +1,12 @@
+oz.c
+asm$p.c
+asm$s.c
+rule.c
+sstring.c
+/kit/glink.c
+/kit/aurora.c
+/kit/gset.c
+/kit/gfrac.c
+/kit/gint.c
+float.cas
+

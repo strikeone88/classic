@@ -1,0 +1,7 @@
+Translator: 3.7 pixels/mm
+Margins:    19.1 mm
+
+Letter:     216x279 mm (800x1032)   658x891
+B5 Env.:    176x250 mm (651x925)    510x784
+Office:     216x356 mm (800x1317)   658x1176
+A4:         210x297 mm (777x1099)   636x958

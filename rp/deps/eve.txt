@@ -1,0 +1,97 @@
+
+    EVE.TXT
+
+    Eve (Hash Generator) Version 0.01
+
+    This is the official RedStar hashing algorithm, given an input
+    of data it generates a 128-bit hash for it. The engine is fast
+    and very easy to implement, plus this algorithm is free!.
+
+    Copyright (C) 2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Eve is a simple yet fast and useful hashing algorithm created in
+    RedStar for internal use, but you can use it free of charge.
+
+    It is a byte-oriented fully context dependent algorithm that uses
+    two magic unsigned 16-bit values and a temporal buffer to store the
+    context of the data that has been added to the hash. It has three
+    simple stages:
+
+        (1) Initialization
+
+            A buffer for eight unsigned 16-bit integers must be
+            created and each element is set to zero, this is the
+            temporal buffer.
+
+            Two unsigned 16-bit variables must be used to store the
+            magic values magicA and magicB, initially this values
+            must be 0x157A and 0xA751.
+
+        (2) Update
+
+            It needs an 8-bit unsigned integer to update the temp
+            buffer, since this value cannot be zero it is incremented
+            by one yielding a 9-bit value from 1 to 256, this value
+            is called I.
+
+            The temporal buffer has exactly eight entries this means
+            that with three bits as index value all the elements can
+            be accessed.
+
+            The magicB value is 16-bits wide and is used by this stage
+            as a vector of six 3-bit entries from least significant bit
+            to most significant bit, each entry is used as an index for
+            the temp buffer, the indexed element is updated simply by
+            adding the magicA value.
+
+            Before you can use the magicB and magicA values as index
+            values and additive values respectively you have to perform
+            an update on those values, the result is what you will use
+            as index-value and additive-value.
+
+            To update the magicA simply add to it the subtraction of the
+            old magicB and the multiplication of 10 by I. To update the
+            magicB subtract from it the sum of the previous magicA and
+            the multiplication of 5 by I.
+
+                  (1) newMagicA = oldMagicA + (oldMagicB - 10*I)
+                  (2) newMagicB = oldMagicB - (oldMagicA + 5*I)
+
+            To remember it easily notice that magicB is ALWAYS related to
+            a minus-sign and magicA to the plus-sign.
+
+        (3) Finalization
+
+            After several updates you will have to perform one last
+            adjust, this ensures that the resulting values in the
+            temporal buffer will be modified with the context of the
+            whole, that is, the last magic values.
+
+            For each entry in the temporal buffer you will perform an
+            update over it and its ancestor, the ancestor of the first
+            element is the last element (circular sequence).
+
+            First you have to update the magic values but not as you
+            updated them in the previous stage, this time the update
+            works as follows; the new magicA value is calculated by
+            adding ten times the old magicB value, and the new magicB
+            by subtracting five times the old magicA.
+
+            The current element is updated by adding to it the magicA
+            value and its ancestor by subtracting the magicB value.
+
+            The update process must be performed for each entry in the
+            temporal buffer, that is, eight times.
+
+            Once this stage is finished you will have the hash in the
+            temporal buffer grouped as 16-bits integers, simply store
+            each 16-bit integer into another buffer called "result"
+            that should be grouped in 8-bit integers, each 16-bit int
+            must be stored in big-endian form in the result buffer,
+            that is, first the MSB and then the LSB.
+
+
+    That's It!!

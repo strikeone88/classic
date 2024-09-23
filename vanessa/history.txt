@@ -1,0 +1,30 @@
+*** Vanessa 0.03 (VL-0-03.RP):
+
+The new VO file format allows section export/import which implies that you
+can import and export any symbol in a section. The RedStar format formerly
+known as RSX has been renamed to VX or Vanessa eXecutable, primarily because
+it relies very much in the section export/import information now introduced
+in the VO files, therefore it has a very good relationship with VOs, and with
+Vanessa, it should be her executable format, and now it is... VX format is
+now COMPLETELY supported. Cynthia executables changed a bit in the header to
+allow page alignment.
+
+*** Vanessa 0.02 (VL-0-02.RP):
+
+In the previous version, when an undefined symbol was found a message was
+shown but without the name of the module that used the symbol, but in this
+version, Vanessa does show the name of the module, an undefined symbol
+warning is shown ONCE per module. A slight mistake in an error message was
+fixed, instead of saying "runtime fixups" it was supposed to be "runtime
+section fixups", now it says "section fixups" to make things clearer. The
+VO format is now much better documented than before. A very small bug with
+the -F option was found and repaired, when you used -F and specified to
+link any library file, the externals in the library were not detected.
+
+*** Vanessa 0.01 (VL-0-01.RP):
+
+Vanessa "The Official RedStar Linker", is ready, fully capable of linking
+big VO files. Supports a variety of output executable formats, and has
+special executable formats such as SBX, and Cynthia Executables, up to
+this version, RSX are not supported, primarily because the specification
+is not done yet.

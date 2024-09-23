@@ -1,0 +1,542 @@
+/*
+    ASM$.SX
+
+    Ozyara Assembly Syntax
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+*/
+
+section lexicon
+{
+    private single-comment:     "//" | ";", "[^\n]";
+    private comment2:           "/*", "[.]", "*/";
+
+    public  character-literal:  "\'", "[.]", "\'";
+    public  string-literal:     "\"", "[.]", "\"";
+
+    public  mident <__mident>:  "#", "[.]", "#";
+
+    public  ident <__ident>:    "[A-Za-z@$&_?.]", "[A-Za-z0-9@$&_?.]";
+    private blanks:             "[\t\v\f\r\s]", "[\t\v\f\r\s]";
+
+    public  number <__number>:  "[0-9]", "[0-9A-Fa-fHhQq_.]";
+    public  literal-line:       "\\", "[^\n]";
+
+    public  new-line:           "\n";
+
+    extern  hex-number;
+    extern  dec-number;
+    extern  oct-number;
+    extern  bin-number;
+    extern  flt-number;
+}
+
+section arrays
+{
+    keyword of ident =
+    {
+        "section", "group", "class", "ends", "org", "extern", "dup",
+        "bits", "ptr32", "ptr48", "ptr64", "publics", "externs",
+        "repeat", "endm", "align", "page256", "page",
+        "export", "import", "to", "from", "bfloat", "float",
+
+        "MOD", "PTR", "LABEL", "ENTRY", "$", "$$"
+    }
+
+    combine-mode of ident =
+    {
+        "public", "private"
+    }
+
+    literal-data-length of ident =
+    {
+        "byte", "word", "dword", "fword", "qword", "tbyte", "para"
+    }
+
+    literal-data-length-b of ident =
+    {
+        "short", "long"
+    }
+
+    literal-data-length-short of ident =
+    {
+        "b", "w", "d", "f", "q", "t", "p"
+    }
+
+    memory-type of ident =
+    {
+        "far32", "far48", "far64"
+    }
+
+    data-length-short of ident =
+    {
+        "db", "dw", "dd", "df", "dq", "dt", "ddq"
+    }
+
+    mnemonic-keyword of ident =
+    {
+        "SHL", "SHR", "NOT", "AND", "OR", "XOR"
+    }
+
+    reg8 of ident =
+    {
+        "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH"
+    }
+
+    reg16 of ident =
+    {
+        "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI"
+    }
+
+    reg32 of ident =
+    {
+        "EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"
+    }
+
+    sreg of ident =
+    {
+        "ES", "CS", "SS", "DS", "FS", "GS"
+    }
+
+    creg of ident =
+    {
+        "CR0", "CR1", "CR2", "CR3", "CR4", "CR5", "CR6", "CR7"
+    }
+
+    dreg of ident =
+    {
+        "DR0", "DR1", "DR2", "DR3", "DR4", "DR5", "DR6", "DR7"
+    }
+
+    treg of ident =
+    {
+        "TR0", "TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7"
+    }
+
+    mmxreg of ident =
+    {
+        "MM0", "MM1", "MM2", "MM3", "MM4", "MM5", "MM6", "MM7"
+    }
+
+    xmmreg of ident =
+    {
+        "XMM0", "XMM1", "XMM2", "XMM3", "XMM4", "XMM5", "XMM6", "XMM7"
+    }
+
+    fpreg of ident =
+    {
+        "ST0", "ST1", "ST2", "ST3", "ST4", "ST5", "ST6", "ST7"
+    }
+
+    extern extern-mnemonic;
+}
+
+section prec
+{
+    right "new-line";
+}
+
+section grammar
+{
+    translation-unit
+        :   [new-line-sequence] section-def-list group-def-list expimp-stmt-list stmt-start statement-list
+        |   "\x01" statement-list
+        ;
+
+    section-def-list
+        :   section-def-list section-def new-line-sequence
+        |   section-def new-line-sequence
+        ;
+
+    group-def-list
+        :   group-def-list group-def new-line-sequence
+        |
+        ;
+
+    expimp-stmt-list
+        :   expimp-stmt-list expimp-stmt new-line-sequence
+        |
+        ;
+
+    expimp-stmt
+        :   export-statement
+        |   import-statement
+        ;
+
+    export-statement <__export_statement>
+        :   export ident to string-literal
+        ;
+
+    import-statement <__import_statement>
+        :   "import" ident from string-literal
+        ;
+
+    new-line-sequence
+        :   new-line-sequence new-line
+        |   new-line
+        ;
+
+    section-def <__section_def>
+        :   "section" temp-name section-attribute-seq
+        |   "section" temp-name
+        ;
+
+    temp-name <__temp_name>
+        :   ident
+        ;
+
+    group-name <__group_name>
+        :   ident
+        ;
+
+    stmt-start <__stmt_start>
+        :
+        ;
+
+    section-attribute-seq
+        :   section-attribute-seq section-attribute
+        |   section-attribute
+        ;
+
+    section-attribute <__section_attr>
+        :   combine-mode
+        |   character-literal
+        |   org expr
+        |   byte | word | dword | para | page256 | page
+        ;
+
+    group-def
+        :   group group-name group-member-list
+        |   group group-name
+        ;
+
+    group-member-list <__group_member_list>
+        :   group-member-list "," ident
+        |   ident
+        ;
+
+    statement-list
+        :   statement-list statement-line
+        |   statement-line
+        ;
+
+    statement-line
+        :   statement new-line
+        |   new-line
+        ;
+
+    statement <__statement>
+        :   repeat expr
+        |   endm
+        |   literal-line
+
+        |   macro-statement
+        |   entry-statement
+
+        |   section-start
+        |   section-end
+
+        |   label-statement
+
+        |   label-definition statement
+        |   label-definition
+
+        |   origin-statement
+        |   align-statement
+        |   bits-statement
+        |   publics-statement
+        |   externs-statement
+
+        |   public-definition
+        |   extern-definition
+
+        |   data-definition
+        |   code-definition
+        ;
+
+    macro-statement
+        :   variable-value
+        ;
+
+    variable-value <__variable_value>
+        :   ident "=" expr
+        ;
+
+    entry-statement <__entry_statement>
+        :   ENTRY ident
+        ;
+
+    public-definition
+        :   "public" public-symbol-list
+        ;
+
+    public-symbol-list <__public_symbol>
+        :   public-symbol-list "," ident
+        |   ident
+        ;
+
+    extern-definition
+        :   "extern" extern-symbol-list
+        ;
+
+    extern-symbol-list <__extern_symbol>
+        :   extern-symbol-list "," ident
+        |   ident
+        ;
+
+    section-start <__section_start>
+        :   "[" temp-name "]"
+        ;
+
+    section-end <__section_end>
+        :   "[" ends "]"
+        ;
+
+    label-definition <__label_definition>
+        :   ident ":"
+        ;
+
+    label-statement <__label_statement>
+        :   ident LABEL literal-data-length
+        |   ident LABEL
+        ;
+
+    origin-statement <__origin_statement>
+        :   "org" expr
+        ;
+
+    align-statement <__align_statement>
+        :   "align" expr "," expr
+        |   "align" expr
+        ;
+
+    bits-statement <__bits_statement>
+        :   "bits" expr
+        ;
+
+    publics-statement <__publics_statement>
+        :   "publics" ident
+        ;
+
+    externs-statement <__externs_statement>
+        :   "externs" ident
+        ;
+
+/****************************************************************************/
+
+    data-definition
+        :   data-label data-length-short-spec data-element-list
+        |   data-length-short-spec data-element-list
+        ;
+
+    data-label <__label_definition>
+        :   ident
+        ;
+
+    data-length-short-spec <__data_length_short_spec>
+        :   data-length-short
+        ;
+
+    data-element-list
+        :   data-element-list "," data-element
+        |   data-element
+        ;
+
+    data-element <__data_element>
+        :   expr dup "(" expr ")"
+        |   string-literal
+        |   expr
+        ;
+
+/****************************************************************************/
+
+    code-definition
+        :   single-instruction instruction
+        |   instruction
+        ;
+
+    single-instruction <__instruction>
+        :   mnemonic
+        ;
+
+    instruction <__instruction>
+        :   mnemonic operand-list
+        |   mnemonic
+        ;
+
+    mnemonic <__mnemonic>
+        :   mnemonic-keyword
+        |   extern-mnemonic
+        ;
+
+    operand-list
+        :   operand-list "," operand
+        |   operand
+        ;
+
+    operand
+        :   explicit-pointer
+        |   memory-operand
+        |   immediate
+        |   reg
+        ;
+
+    explicit-pointer <__epointer>
+        :   expr ":" expr
+        ;
+
+    immediate <__immediate>
+        :   literal-data-length expr
+        |   literal-data-length-b expr
+        |   expr
+        ;
+
+    reg <__reg>
+        :   reg8
+        |   reg16
+        |   reg32
+        |   sreg
+        |   creg
+        |   dreg
+        |   treg
+        |   mmxreg
+        |   xmmreg
+        |   fpreg
+        ;
+
+    memory-operand
+        :   explicit-specification segment-override x32mem
+        |   explicit-specification x32mem
+        |   segment-override x32mem
+        |   x32mem
+        ;
+
+    explicit-specification
+        :   explicit-mem-type-specification
+        |   explicit-size-specification
+        ;
+
+    explicit-size-specification <__explicit_size_specification>
+        :   literal-data-length PTR
+        |   literal-data-length-short ","
+        |   literal-data-length-short
+        ;
+
+    explicit-mem-type-specification <__explicit_mem_type_specification>
+        :   memory-type
+        ;
+
+    segment-override <__segment_override>
+        :   sreg ":"
+        ;
+
+    x32mem <__x32mem>
+        :   "[" x32memOpA "+" x32memOpA "+" x32memOpC "]"
+        |   "[" x32memOpA "+" x32memOpA "-" x32memOpB "]"
+        |   "[" x32memOpA "+" x32memOpC "]"
+        |   "[" x32memOpA "-" x32memOpB "]"
+
+        |   "[" x32memOpC "] [" x32memOpC "] [" x32memOpC "]"
+        |   "[" x32memOpC "] [" x32memOpC "]"
+
+        |   "[" x32scale "+" x32memOpA "+" x32memOpC "]"
+        |   "[" x32scale "+" x32memOpA "-" x32memOpB "]"
+        |   "[" x32scale "+" x32memOpC "]"
+        |   "[" x32scale "-" x32memOpB "]"
+
+        |   "[" x32scale "] [" x32memOpC "] [" x32memOpC "]"
+        |   "[" x32scale "] [" x32memOpC "]"
+
+        |   "[" x32memOpC "]"
+        |   "[" x32scale "]"
+        ;
+
+    x32memOpA <__x32memOpA>
+        :   reg32
+        |   BX
+        |   BP
+        |   SI
+        |   DI
+        ;
+
+    x32memOpB <__x32memOpB>
+        :   expr
+        ;
+
+    x32memOpC
+        :   x32memOpA
+        |   x32memOpB
+        ;
+
+    x32scale <__x32scale>
+        :   reg32 "*" dec-number
+        ;
+
+/* ------------------------------------------------------------------------ */
+
+    primary-expression <pushRule>
+        :   "(" expr ")"
+
+        |   flt-number
+        |   hex-number
+        |   dec-number
+        |   oct-number
+        |   bin-number
+
+        |   character-literal
+
+        |   ident
+        |   "section" ident
+
+        |   ptr32 ident
+        |   ptr48 ident
+        |   ptr64 ident
+
+        |   PTR ident
+
+        |   "$"
+        |   "$$"
+
+        |   "( bfloat )" expr
+        |   "( float )" expr
+        |   "( long )" expr
+        ;
+
+    unary-expression <pushRule>
+        :   primary-expression
+        |   NOT unary-expression
+        |   "+" unary-expression
+        |   "-" unary-expression
+        ;
+
+    multiplicative-expression <pushRule>
+        :   unary-expression
+        |   multiplicative-expression "*" unary-expression
+        |   multiplicative-expression "/" unary-expression
+        |   multiplicative-expression MOD unary-expression
+        ;
+
+    additive-expression <pushRule>
+        :   multiplicative-expression
+        |   additive-expression "+" multiplicative-expression
+        |   additive-expression "-" multiplicative-expression
+        ;
+
+    shift-expression <pushRule>
+        :   additive-expression
+        |   shift-expression SHL additive-expression
+        |   shift-expression SHR additive-expression
+        ;
+
+    logical-expression <pushRule>
+        :   shift-expression
+        |   logical-expression AND shift-expression
+        |   logical-expression OR shift-expression
+        |   logical-expression XOR shift-expression
+        ;
+
+    expr <pushRule>
+        :   logical-expression
+        ;
+}

@@ -1,0 +1,105 @@
+
+    VX.TXT
+
+    Vanessa Executable File Format Specification Version 0.01
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description           * VX Header Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   DWORD   Signature   Indicates an actual VX file, 0x78767372.
+
+    0x004   DWORD   ImageOffs   Offset of the program's image.
+
+    0x008   DWORD   ImageLen    Length of the program's image.
+
+    0x00C   DWORD   FixupsOffs  Offset of the fixups table.
+
+    0x010   DWORD   FixupCount  Count of fixups in the fixups table.
+
+    0x014   DWORD   EntryOffs   Entry point offset.
+
+    0x018   WORD    ExpCount    General count of symbol exports.
+
+    0x01A   WORD    ImpCount    General count of symbol imports.
+
+    0x01C   BYTE    SecCount    Count of sections in the executable.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description       * Section Entry Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   DWORD   SecLength   Length of the section in bytes.
+
+    0x004   BYTE    Flags       Flags of the section. Bit 7, indicates
+                                that a DWORD follows the section name,
+                                it is the offset of the table that can
+                                be either an exports table (if bit 6 is
+                                zero) or imports table (bit 6 is set).
+
+    0x005   STRING  SecName     Name of the section.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+    Offset  Size    Symbol      Description       * Imports Table Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   WORD    ImpCount    Count of symbols imports.
+
+    0x002   STRING  ImpName     Name of the global section to import from.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description        * Import Entry Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   STRING  SymName     Name of the symbol to import.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+    Offset  Size    Symbol      Description       * Exports Table Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   WORD    ExpCount    Count of symbols exports.
+
+    0x002   STRING  ExpName     Name of the section to export to.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description        * Export Entry Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   DWORD   SymOffset   Offset of the symbol, relative to the
+                                beginning of its section.
+
+    0x004   STRING  SymName     Name of the symbol to export.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description     * Reference Entry Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   DWORD   FixCount    Count of fixups for this symbol.
+
+    0x004   STRING  SymName     Name of the symbol to import.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Symbol      Description         * Fixup Entry Format *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   BYTE    Flags       Fixup Flags
+
+                                Bit Symbol      Description
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                                7-6 OFFSET-LEN  Length of the OFFSET field.
+                                                0: Byte, 1: Word, 2: Tryad
+                                                or 3: Dword.
+
+                                5   SYMBOL-LEN  Length of the SYMBOL field.
+                                                0: Byte, 1: Word
+
+                                4-0 SSYMBOL     Small symbol value, if this
+                                                symbol is non-zero then the
+                                                SYMBOL field will not exist.
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    0x01+?  1-4     OFFSET      Offset to fix, its size is indicates by
+                                the Flags.OFFSET-LEN field.
+
+    0x01+?  0-1     SYMBOL      Symbol Index, its presence is indicated by
+                                Flags.SSYMBOL when its zero, and its size
+                                by Flags.SYMBOL-LEN.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴

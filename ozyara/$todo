@@ -1,0 +1,9 @@
+enh: add support for Becky
+
+******************************************************************
+add debug info!!
+scopes for local variables!
+real dups
+uninitialized data
+macros
+explicit debug data like ?debug SOURCE LINE

@@ -1,0 +1,64 @@
+*** Ozyara Version 1.06 (OZ-1-05.RP):
+
+Supports cast to PARA, 1.05 had a bug because gInt was bugged, when you
+converted a gInt to a string it always returned something weird, and the
+value was always 45.
+
+*** Ozyara Version 1.05 (OZ-1-05.RP):
+
+Updated BASE.INS
+
+*** Ozyara Version 1.04 (OZ-1-04.RP):
+
+#Info(i)#
+short,long
+float,long,bfloat
+
+*** Ozyara Version 1.03 (OZ-1-03.RP):
+
+Ozyara now creates VO files that support section export/import, the syntax
+was slightly modified to allow such thing, this will allow Vanessa to have
+more information at linking time to build a perfect V executable file. In
+the previous versions, an external declared at the end and used before its
+declaration did not generate its respective VO-fixup, now it does. In the
+previous version, the SSE CMPxxSS and CMPxxPS were not assembled, now they
+are. All the MMX2 instructions and most of the SSE2 are now in Ozyara's base
+instruction set, she now understands a total of 575 instructions. In the
+previous version of the set file, an awful mistake was made with the AMD-3D
+and 3DNow! instructions, the actual opcode byte was written before the
+ModR/M, and AMD puts it after the ModR/M, bug fixed.
+
+*** Ozyara Version 1.02 (OZ-1-02.RP):
+
+The generic single (real32), double (real64) and real80 fp formats are now
+fully supported. The largest integer and data item length supported is of
+128-bits (ddq, double quad word, 16 bytes). Lexically an fp number is just
+a decimal number followed by a dot and then followed by another decimal
+number, that's how you say "it's a floating-point number". Type overrides
+modified a bit, you can say "tbyte ptr [bx]", or "t[bx]" or "t,[bx]", the
+three conventions are suported, this adds a slight rule, you CAN'T use a
+reserved keyword (B, W, D, F, Q, T) as a variable name.
+
+*** Ozyara Version 1.01 (OZ-1-01.RP):
+
+Official RedStar Assembler, designed to support all x86 based instructions,
+the ones defined as of the release of this baby girl, and the ones to come,
+this is done by using an instruction set compiler. Supports processors from
+80186 to 80686, Pentium II, Pentium III, and AMD-3D. Also supports features
+such as FPU, MMX, EMMX, SEE and 3DNow!. Ozyara assembles to Vanessa Object
+files, which are intented to be linked by Vanessa. As of this release, Ozyara
+is capable of understanding a total of 478 instructions. Macros are currently
+not supported, only the "repeat" macro is unofficially supported, it can be
+used, but it is a pain. The largest single data item supported is of 64-bits,
+but the largest integer value supported is 32-bits long, that is, even if you
+use 64-bit variables you will not be able to assign values greater than the
+famous 2^32 - 1, sorry. Here's something to cry for... there is no floating
+point literal support in the syntax!! You can use FPU instructions, but you
+will have to calculate the initial values... zurry, nevertheless, I promise
+to fix this as soon as I can, cross my heart and hope to die. There are also
+good things, Ozyara supports immediate pointers (B800:0000) for calls and
+jumps, also the underscore, and-sign, dollar-sign question mark and point can
+be used in an identifier, the underscore can be used in any integer-literal,
+the integer suffixes are: H, D, Q and B, for Hexadecimal, Decimal, Octal and
+Binary respectively. Immediate displacements are also supported, you know,
+stuff such as ES:[0000h], that's a plus.

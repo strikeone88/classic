@@ -1,0 +1,267 @@
+
+    VO.TXT
+
+    Vanessa Object File Format Specification Version 0.01
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    The following records are found in the vo files, note that the strings
+    (denoted by S) are in leading-length format. All WORDS and DWORDS are
+    stored in little-endian format.
+
+    Record Format   Description                           * VO Records *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    80 B B S        The name of the creator of the object file (string),
+                    also specifies the version of the VO file, the first
+                    byte is the major-version and the other byte is the
+                    minor-version in BCD.
+
+                    ** (OBJECT) Expects: 81, 82
+
+    90 S D          Library specification, the string is the name of the
+                    creator of the library file, the double word is the
+                    public symbols dictionary in Aurora on-disk format.
+
+                    The data tied to a symbol is the offset of the VO file
+                    that contains it.
+
+                    ** (LIBRARY) Expects: Nothing
+
+    81 D D          The 81 and 82 records specify the 'Content-Type',
+                    in this record, the first dword is used to select
+                    the processor capabilities, the other dword is the
+                    offset of the first byte of the vo file.
+
+                    ** (CAPABILITIES) Expects: 81, 89, 8A
+
+                    Bit     Capability           * Capabilities Flags *
+                    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
+                    0       FPU Chip
+                    1       TSC Register (Timestamp Counter)
+                    2       Pentium Compatible MSRs
+                    3       K5 Compatible MSRs
+                    4       CMPXCHG8B Instruction
+                    5       Local APIC
+                    6       Fast System Call
+                    7       CMOV Instruction
+                    8       FCMOV Instruction
+                    9       Processor Serial Number
+                    10      MMX
+                    11      Extended MMX
+                    12      Fast Save/Restore (MMX-2)
+                    13      Streaming SIMD Extensions (MMX-2)
+                    14      3DNow!
+                    15      Extended 3DNow!
+                    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
+
+    82 S D B B      The Content-Type is object code specification, the
+                    string is the name of the source file, the dword is
+                    the offset of the symbols area, the byte is the
+                    count of sections in the object file and the last
+                    byte the count of groups.
+
+                    ** (OBJECT-CODE) Expects: 83
+
+    83 B B D B D D  Describes a section, the first byte is the section
+                    name, then the section class, and then the section
+                    length, next byte is the section attributes, bits 7-5
+                    describe the alignment and bit 4 the combine mode.
+
+                    The next dword is the offset of the binary data, and
+                    the last one is the section origin. If the length is
+                    zero then the length of the binary area will be used.
+
+                    Alignment can be byte (0), word (1), dword (2),
+                    paragraph (3), 256 bytes (4) and page (5).
+
+                    Combine mode can be public (0) or private (1).
+
+                    ** (SECTION-DEF) Expects: 83, 84, 86, 87
+
+    84 B B          Defines a group, the first byte indicates how many
+                    sections belong to this group, the other byte is the
+                    index of the name of the group.
+
+                    ** (GROUP-DEF) Expects: 85
+
+    85 B            Indicates that the given section belongs to the
+                    previously defined group.
+
+                    ** (GROUP-MEMBER) Expects: 84, 85, 87
+
+    86 B S          Specifies export/import name. If bit-0 is zero
+                    then it indicates export, otherwise import, the
+                    seven bits remaining are reserved. The string is
+                    the name to be used as export/import name. When
+                    exporting, all the publics defined in the section
+                    will be exported using its name. When importing,
+                    the externals will be imported using their names.
+
+                    The capacity to export and/or import symbols
+                    during runtime, was created primarily for the
+                    Vanessa eXecutable format.
+
+                    ** (EXPIMP-NAME) Expects: 83, 84, 87
+
+    87 B D          Indicates where the entry point of the program
+                    is located, the byte is the section index and
+                    the double word the offset. If the index is zero
+                    then no entry point exists.
+
+                    ** (ENTRY-POINT) Expects: 88
+
+    88 D D D D      Indicates the offsets of the publics, externals,
+                    debug-info and fixups areas. An offset of zero
+                    indicates that the area does not exist.
+
+                    ** (INFO-AREAS) Expects: 89, 8A
+
+    89              End of object file.
+
+                    ** (VO-END) Expects: Nothing
+
+    8A              Reserved for future use.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                         * Note: INDICES are given from ONE, NOT ZERO. *
+
+    In the Publics-Area, each entry is variable length, the first byte
+    is called PUBLIC-INFO and gives information about the actual length
+    of the entry, the fields that follow PUBLIC-INFO are SECTION, SYMBOL
+    and OFFSET (in order), SECTION is always byte-sized and is optional
+    because there is a field in PUBLIC-INFO that can be used to store it
+    if it fits; the PUBLIC-INFO is defined as follows:
+
+    Bits    Name        Description                        * PUBLIC-INFO *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    7       SYMBOL-LEN  Specifies the length of the SYMBOL field.
+                        0: Byte
+                        1: Word
+
+    6-5     OFFSET-LEN  Specifies the length of the OFFSET field.
+                        0: Byte
+                        1: Word
+                        2: Tryad
+                        3: Dword
+
+    4-0     SECTION     Specifies the section index. If the value stored
+                        here is non-zero, then the SECTION field that
+                        should follow PUBLIC-INFO will not exist.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Now, the externals are real simple, just a list of symbol indices,
+    each followed by a section index, the first takes a word and the
+    second a byte, note that the section index is written ONLY if the
+    section is going to be imported. When fixing, the target type may
+    indicate EXTERNAL SYMBOL, if so, the index does not refer to an
+    index within this table, but instead a SYMBOL-INDEX.
+
+    The fixups area contains a list of areas that need to be modified
+    with information known only at linking time. The entry fields are
+    FIXUP-INFO, SECTION, OFFSET, and TARGET. The SECTION field is just
+    a byte that specifies the section index to fix. The FIXUP-INFO is
+    defined as follows:
+
+    Bits    Name        Description                         * FIXUP-INFO *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    7-6     OFFSET-LEN  The length of the OFFSET field.
+                        0: Byte
+                        1: Word
+                        2: Tryad
+                        3: Dword
+
+    5       FIXUP-MODE  The fixup mode, can be ABSOLUTE (0) or RELATIVE (1),
+                        when ABSOLUTE the offsets are calculated from the
+                        beginning of the SECTION-GROUP, otherwise it is
+                        calculated from the CURRENT relative offset.
+
+    4-3     TARGET-TYPE Describes the type and size of the target.
+                        0: Section (Byte)
+                        1: Group (Byte)
+                        2: External Symbol (Byte)
+                        3: External Symbol (Word)
+
+    2-0     AREA-INFO   Specifies the length and type of the area to
+                        be fixed.
+
+                        0: 16-bit Offset
+                        1: 16-bit Base
+                        2: 32-bit Offset
+                        3: 32-bit Base
+                        4: 32-bit Pointer
+                        5: 48-bit Pointer
+                        6: 64-bit Pointer
+                        7: Reserved
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+          * NOTE: ABSOLUTE mode is valid only if AREA-INFO is an OFFSET. *
+
+    The debug information area contains variable length entries (usual)
+    the fields are DEBUG-INFO, OFFSET and LINE.
+
+    Bits    Name        Description                         * DEBUG-INFO *
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    7-6     INFO-TYPE   Specifies the type of the entry.
+                        0: Line-Number
+
+    5-4     LINE-LEN    Specifies the length of the LINE field.
+                        0: Byte
+                        1: Word
+                        2: Tryad
+                        3: Dword
+
+    3-2     OFFSET-LEN  Specifies the length of the OFFSET field.
+                        0: Byte
+                        1: Word
+                        2: Tryad
+                        3: Dword
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    As of the writing of this spec, only line-number debug information
+    is supported.
+
+    Note that when offsets to areas are given, the FIRST DWORD at that
+    offset specifies the LENGTH of that area and the next double word
+    the count of elements in that area. The binary data is also an area
+    but without the element count dword (just length).
+
+    When using tryads, the lower 16-bits are written first and then the
+    upper 8-bits (little-endian format).
+
+    Fixing is the MOST important process when linking, a slight mistake
+    and you will get a mega-bugged proggy, this happens because of one
+    simple reason: "Fixups Are The Glue That Hold VOs Together", these
+    are used to connect one VO to another, one mistake and the offsets
+    are all wrong, and that means, incorrect memory accesses and jumps
+    that miss their targets.
+
+    EVERY OFFSET is given as a LOCAL-LOGICAL-ADRESS, that is, relative
+    from the LOGICAL-ORIGIN of the SECTION where the public or fixup,
+    or whatever is located.
+
+    Now, both the FIXUP-OFFSET and the TARGET-OFFSET must be converted
+    into PHYSICAL-ADDRESSES, (aka) physically from zero, this is done
+    by subtracting the LOGICAL-ORIGIN from the LOCAL-LOGICAL-ADDRESS,
+    and then adding the SECTION-PHYSICAL-OFFSET. It is recommended to
+    build an unfixed raw image file, where the binary areas of all the
+    sections are written BEFORE the fixing stage, this way you can get
+    physical section offsets quite easily.
+
+    The next step depends on FIXUP-MODE. If it is ABSOLUTE, you must
+    convert the PHYSICAL-ADDRESS into GLOBAL-LOGICAL-ADDRESS, this is
+    done by finding the base group (BASE) of the target's section, that
+    is the FIRST section of the GROUP that contains the section of the
+    target. And adding BASE-LOGICAL-ORIGIN to PHYSICAL-ADDRESS, and then
+    subtracting BASE-PHYSICAL-ADDRESS.
+
+    If the FIXUP-MODE is RELATIVE then the PHYSICAL-ADDRESS is converted
+    into the fixup's LOCAL-LOGICAL-ADDRESS, that is, a logical address
+    seen from inside the section where the fixup is located, this is
+    easily done by subtracting the fixup's SECTION-PHYSICAL-OFFSET and
+    then adding the fixup's SECTION-LOGICAL-ORIGIN.
+
+    Once you have either a GLOBAL/LOCAL LOGICAL-ADDRESS the last step
+    is simple, just add the resulting address to the value located at
+    the fixup's offset, remember that you have the fixups's AREA-INFO
+    that indicates how long the value to be fixed is.

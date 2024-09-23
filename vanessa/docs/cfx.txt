@@ -1,0 +1,21 @@
+
+    CFX.TXT
+
+    Cynthia Executable File Format Specification Version 0.01
+
+    Copyright (C) 2007-2009 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Offset  Size    Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�
+    0x000   DWORD   Signature ('CFX!')
+    0x004   DWORD   Image Length
+    0x008   DWORD   Count of Fixups
+    0x00C   DWORD   Stack Section Offset
+    0x010   DWORD   Stack Section Length
+    0x014   DWORD   Entry Point Offset
+    0x018   DWORD   Image Offset
+    0x01C   DWORD   Reserved
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴�

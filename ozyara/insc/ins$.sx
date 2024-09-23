@@ -1,0 +1,147 @@
+/*
+    INS$.SX
+
+    Syntax of Ozyara's Instruction Set Source Files Version 0.01
+
+    Copyright (C) 2007-2008 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+*/
+
+section lexicon
+{
+    private blanks:     "[\t\n\v\f\r\s]", "[\t\n\v\f\r\s]";
+
+    private comment1:   "(*", "[.]", "*)";
+    private comment2:   "{*", "[.]", "*}";
+    private comment3:   "//", "[.]", "\n";
+
+    public  hexconst:   "0x", "[A-Fa-f0-9]";
+    public  decconst:   "[0-9]", "[0-9]";
+
+    public  ident:      "[A-Za-z/+]", "[A-Za-z0-9/]";
+}
+
+section arrays
+{
+    general-opcode-specifier of ident =
+    {
+        "/0", "/1", "/2", "/3", "/4", "/5", "/6", "/7", "/r", "/d", "ib",
+        "iw", "id", "+rb", "+rw", "+rd", "db", "dw", "dd", "cb", "cw", "cd",
+        "rm", "pm", "xm", "pd", "pf", "pq", "idw", "idd"
+    }
+
+    abstract-operand of ident =
+    {
+        "none", "rel8", "rel16", "rel32", "r8", "r16", "r32", "sreg",
+        "mmxreg", "xmmreg", "imm8", "imm16", "imm32", "r/m8", "r/m16",
+        "r/m32", "r/m64", "r/m128", "m", "mem8", "mem16", "mem32",
+        "mem48", "mem64", "mem128", "i16moffs", "i32moffs", "moffs8",
+        "moffs16", "moffs32", "cr", "tr", "dr", "r32/m16", "r128/m32",
+        "r128/m64", "far32", "far48", "far64", "ptr32", "ptr48", "ptr64",
+        "eptr32", "eptr48", "fpreg", "mem80", "r/m80"
+    }
+
+    reg8 of ident =
+    {
+        "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH"
+    }
+
+    reg16 of ident =
+    {
+        "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI"
+    }
+
+    reg32 of ident =
+    {
+        "EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"
+    }
+
+    segreg of ident =
+    {
+        "ES", "CS", "SS", "DS", "FS", "GS"
+    }
+
+    creg of ident =
+    {
+        "CR0", "CR1", "CR2", "CR3", "CR4", "CR5", "CR6", "CR7"
+    }
+
+    dreg of ident =
+    {
+        "DR0", "DR1", "DR2", "DR3", "DR4", "DR5", "DR6", "DR7"
+    }
+
+    treg of ident =
+    {
+        "TR0", "TR1", "TR2", "TR3", "TR4", "TR5", "TR6", "TR7"
+    }
+
+    fpreg of ident =
+    {
+        "ST0", "ST1", "ST2", "ST3", "ST4", "ST5", "ST6", "ST7"
+    }
+}
+
+section grammar
+{
+    instruction-definition-sequence
+        :   instruction-definition-sequence instruction-definition
+        |   instruction-definition
+        ;
+
+    instruction-definition <instruction_definition>
+        :   "(" instruction-name-seq ") {" instruction-form-definition-sequence "}"
+        |   instruction-name "{" instruction-form-definition-sequence "}"
+        ;
+
+    instruction-name <instruction_name>
+        :   ident
+        ;
+
+    instruction-name-seq
+        :   instruction-name-seq instruction-name
+        |   instruction-name
+        ;
+
+    instruction-form-definition-sequence <inc_formcount>
+        :   instruction-form-definition-sequence instruction-form-definition
+        |   instruction-form-definition
+        ;
+
+    instruction-form-definition
+        :   operand-list opcode-specifier-sequence
+        ;
+
+    operand-list
+        :   operand-list "," operand
+        |   operand
+        ;
+
+    operand <operand>
+        :   abstract-operand "*"
+        |   abstract-operand
+        |   explicit-operand
+        |   decconst
+        ;
+
+    explicit-operand <explicit_operand>
+        :   reg8
+        |   reg16
+        |   reg32
+        |   segreg
+        |   creg
+        |   dreg
+        |   treg
+        |   fpreg
+        ;
+
+    opcode-specifier-sequence
+        :   opcode-specifier-sequence opcode-specifier
+        |   opcode-specifier
+        ;
+
+    opcode-specifier <opcode_specifier>
+        :   general-opcode-specifier
+        |   hexconst
+        ;
+}

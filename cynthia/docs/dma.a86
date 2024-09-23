@@ -1,0 +1,350 @@
+;From : Ian Moote
+;Subj : Memory-To-Memory Dma
+;
+;-> I have tried to find information on memory-to-memory DMA transfers,
+;-> also, but always found a dead end.  I would like to see how you are
+;-> doing it.
+;
+;Probably because memory-to-memory is a pretty useless thing from a
+;practical point of view. Following is the final assembly that I
+;used. As you can see, there's nothing really special to it. I finished
+;this part of the project up a few months ago and it looks like I used
+;A86 on this one. If you're not using A86 then you'll have to re-write
+;the "Delay" macro.
+;
+;You'll see that the assembly is >very< verbose! The main reason is
+;because I had to distil all this information down from the original
+;Intel data sheets, and the best place to keep the information seemed to
+;be the source itself. I also made very heavy use of EQUates within the
+;actual code itself. Some of the EQUates seem pretty cryptic, but if you
+;study the DMAC registers they should become fairly evident. Most
+;instructions have multiple EQUates specified. As I was expecting to be
+;re-writing and re-arranging code often I knew that I wouldn't be
+;commenting very well and this mnemonic method seemed to offer the
+;highest level of comprehension. (The code sorta speaks for itself. [:)
+;
+;The code between "Init:" and "Start:" pre-loads the memory areas of
+;pages 8 and 9 (8000:0000-FFFF and 9000:0000-FFFF). For page 8, 00 will
+;be written to the first 256 bytes, 01 will be written to the second
+;block of 256 bytes, etc. right up to the last block of 256 bytes which
+;is written with FF. For page 9 the same thing is done, except that the
+;first block of 256 bytes will be FF and the last block will be 00. I had
+;to do this to be able to actually see that the Dma transfer had taken
+;place. When I first started experimenting with this I was loading the
+;first page (whatever it was) with 00's and the second page with FF's. It
+;turns out that I had probably successfully performed a memory-to-memory
+;Dma transfer more than a year ago, but I didn't see it because it was
+;copying the same byte values and the pattern wasn't disturbed!! [:)))
+;
+;Just assemble it and run it, then load up Debug and examine the contents
+;of pages 8 and 9! You should see that the page 8 pattern goes from 00 to
+;FF, but that the page 9 pattern goes from FF to 80, then repeats from FF
+;to 80 again. (If I remember correctly. Maybe it was from FF to 81.)
+;
+
+PAGE 75,133,5,5,10
+TITLE Project: Dma 1-3
+SUBTTL Attempt to perform a memory-to-memory Dma transfer.
+
+;=============================================================================
+;                                  DMA.ASM
+;-----------------------------------------------------------------------------
+;
+;     This routine demonstrates a Memory-To-Memory transfer on an AT-type PC
+;  using the master 8237 DMA controller.  The important thing to note here is
+;  that, for some reason, the upper four bits of the address for both the
+;  source and destination pages are supplied by the page register for Channel
+;  1.  There is also provision in the final command byte for demonstrating the
+;  Channel 0 Hold function of the controller.
+;
+;     The routine doesn't work without the "Delay" macro, but even this
+;  minimal delay seems to be long enough, even for use on a 386-40.
+;
+;=============================================================================
+
+RADIX 10h
+
+JMP Init
+
+
+;--------------------------------------
+;Data and variable Equates:
+
+SourcePage     EQU 08   ;Source page for the Memory-To-Memory move.
+DestPage       EQU 09   ;Destination page for the Memory-To-Memory move.
+SourceOffset   EQU 0000 ;Offset of the source data within the SourcePage.
+DestOffset     EQU 8000 ;Offset for destination data within the DestPage.
+NumBytes       EQU 7FFD ;Number of bytes to transfer.
+
+
+;--------------------------------------
+;Static Equates:
+
+Channel0       EQU 00
+Channel1       EQU 01
+Channel3       EQU 03
+Mask           EQU 04
+Mem2Mem        EQU 01
+Demand         EQU 00
+Single         EQU 40
+Block          EQU 80
+Increment      EQU 00
+Verify         EQU 00
+Write          EQU 04
+Read           EQU 08
+Clear          EQU 00
+Set            EQU 04
+Disable        EQU 04
+Enable         EQU 00
+Channel0Hold   EQU 02
+
+DMABase0    EQU 0000
+DMABase1    EQU 00D0
+
+DMAOffset0  EQU 0000 ;Address offset
+DMABCount0  EQU 0001 ;Block size (the 8237 will perform one transfer more than
+                     ;  what is programmed into the counter.
+DMAOffset1  EQU 0002
+DMABCount1  EQU 0003
+DMAOffset2  EQU 0004
+DMABCount2  EQU 0005
+DMAOffset3  EQU 0006
+DMABCount3  EQU 0007
+DMACmd      EQU 0008 ;Command register
+                     ;  bit 7: 1=sense DACK active high (set to 0)
+                     ;      6: 1=sense DRQ active high (set to 0)
+                     ;      5: Contents irrelevent if bit 3 = 1.
+                     ;         1=extended write mode
+                     ;         0=late write mode
+                     ;      4: 1=rotating priority
+                     ;         0=fixed priority
+                     ;      3: Contents irrelevent if bit 0 = 1.
+                     ;         0=normal
+                     ;           - normally, the S3 timing state is used to
+                     ;             lengthen the read pulse from the controller
+                     ;         1=compressed timing mode
+                     ;           - removes the S3 timing state
+                     ;      2: 1=disable controller
+                     ;           - the controller should really be disabled
+                     ;             before any programming is attempted
+                     ;      1: 1=channel 0 address hold
+                     ;      0: 1=enable memory-to-memory transfer
+                     ;           - uses channels 0 and 1
+                     ;           - transfers from 0 to 1
+                     ;           - transfer is initiated by setting the
+                     ;             software DREQ bit for channel 0 (which means
+                     ;             that the channels must be in "block" mode)
+                     ;           - channel 0's address can be "held" to
+                     ;             perform a memory fill
+DMAStat     EQU 0008 ;Status register
+                     ;  bit 7: 1=channel 3 request pending
+                     ;      6: 1=channel 2    "       "
+                     ;      5: 1=channel 1    "       "
+                     ;      4: 1=channel 0    "       "
+                     ;      3: 1=channel 3 has reached terminal count
+                     ;      2: 1=channel 2  "     "        "      "
+                     ;      1: 1=channel 1  "     "        "      "
+                     ;      0: 1=channel 0  "     "        "      "
+DMAReq      EQU 0009 ;Request register
+                     ;  - a channel must be in block mode to use software DREQs
+                     ;  bit 7-3: Not Used
+                     ;        2: 1=set request
+                     ;      1-0: channel to set/reset
+DMASMask    EQU 000A ;Single mask register
+                     ;  bit 7-3: Not Used
+                     ;        2: 1=mask (disable) channel
+                     ;           0=enable channel
+                     ;      1-0: channel to mask
+DMAMode     EQU 000B ;Mode register
+                     ;  bit 7-6: Mode
+                     ;              00=demand ("normal for slow devices")
+                     ;                 - transfers data while Drq is high.
+                     ;                   If Drq goes low, the controller will
+                     ;                   release the bus to the *PU.
+                     ;              01=single (sound blaster)
+                     ;                 - ensures that the *PU gets a cycle
+                     ;                   for every byte (word) transfered.
+                     ;              10=block
+                     ;                 - transfers the entire block of data
+                     ;                   before releasing the bus back to the
+                     ;                   *PU.
+                     ;              11=cascade
+                     ;                 - the HRQ and HLDA signals from a second
+                     ;                   8237 device are connected to "this"
+                     ;                   channel's DREQ and DACK lines.  "This"
+                     ;                   8237 will generate an HRQ and pass an
+                     ;                   HLDA back to the cascaded 8237, but it
+                     ;                   is the cascaded device that generates
+                     ;                   the transfer signals.
+                     ;        5: 1=address decrement
+                     ;           0=address increment
+                     ;        4: 1=autoinitialize
+                     ;      3-2: Transfer Type
+                     ;              00=verify
+                     ;              01=write (to memory)
+                     ;              10=read (from memory)
+                     ;              11=Undefined
+                     ;      1-0: channel select
+DMAFFReset  EQU 000C ;Flip-flop reset register
+                     ;  Any write clears the high/low byte flip-flop.
+DMAMReset   EQU 000D ;Master reset register
+                     ;  Any write to this register clears the controller.  It
+                     ;  must then be re-initialized.  (Flip flop is also
+                     ;  cleared.)
+                     ;  When read, it supposedly contains the last byte of a
+                     ;  memory-to-memory transfer.  Apparently not used.
+DMAMEnable  EQU 000E ;Master enable register
+                     ;  Any write to this register clears all masks and
+                     ;  enables all channels.
+DMAMMask    EQU 000F ;Master mask register
+                     ;  bit 7-4: Not Used
+                     ;        3: 1=mask channel 3
+                     ;        2: 1=mask channel 2
+                     ;        1: 1=mask channel 1
+                     ;        0: 1=mask channel 0
+                     ;  When read, it supposedly contains the last byte of a
+                     ;  memory-to-memory transfer.  Apparently not used.
+DMAPage0    EQU 0087 ;Dma page 0; 4-bits for XT, 7- or 8-bits for AT.
+                     ;  Apparently not used on XT's.
+DMAPage1    EQU 0083 ;Dma page 1; 4-bits for XT, 7- or 8-bits for AT.
+                     ;Also, the page for handling a Memory-To-Memory DMA
+                     ;  transfer.  (The Source and Destination pages must be
+                     ;  the same.)
+DMAPage2    EQU 0081 ;Dma page 2; 4-bits for XT, 7- or 8-bits for AT.
+DMAPage3    EQU 0082 ;Dma page 3; 4-bits for XT, 7- or 8-bits for AT.
+DMAPage4    EQU 008F ;Dma page 4; 7- or 8-bits.
+DMAPage5    EQU 008B ;Dma page 5; 7- or 8-bits.
+DMAPage6    EQU 0089 ;Dma page 6; 7- or 8-bits.
+DMAPage7    EQU 008A ;Dma page 7; 7- or 8-bits.
+
+
+
+;=============================================================================
+;Macros:
+
+Delay    MACRO JMP $+02
+               JMP $+02
+         #EM
+
+
+
+;=============================================================================
+Init:
+
+;Fill page 8 with the values 00 through FF.
+      CLD
+      MOV AX,8000
+      MOV ES,AX
+      XOR DI,DI
+      XOR DX,DX
+   L00:
+      MOV AL,DL
+      MOV CX,0100
+      REP STOSB
+      INC DL
+      JNZ L00
+
+;Fill page 9 with the values FF through 00.
+      MOV AX,9000
+      MOV ES,AX
+      XOR DI,DI
+      XOR DX,DX
+      MOV CX,00FF
+   L01:
+      PUSH CX
+      MOV AL,CL
+      MOV CX,0100
+      REP STOSB
+      POP CX
+      LOOP L01
+
+
+
+;--------------------------------------
+Start:
+      ;Disable the controller.
+      MOV AL,Disable
+      OUT DMACmd + DMABase0,AL
+      Delay
+
+      ;Clear the flip-flop.
+      OUT DMABase0 + DMAFFReset,AL
+      Delay
+
+      ;Disable channels zero and one.
+      MOV AL,Mask + Channel0
+      OUT DMASMask + DMABase0 ,AL
+      Delay
+      MOV AL,Mask + Channel1
+      OUT DMASMask + DMABase0 ,AL
+      Delay
+
+      ;Set page addresses for channels zero and one.
+      MOV AL,SourcePage
+      OUT DMABase0 + DMAPage0,AL
+      Delay
+
+      MOV AL,DestPage
+      OUT DMABase0 + DMAPage1,AL
+      Delay
+
+      ;Set offsets for channels zero and one.
+      MOV AX,SourceOffset
+      OUT DMABase0 + DMAOffset0,AL
+      Delay
+      XCHG AL,AH
+      OUT DMABase0 + DMAOffset0,AL
+      Delay
+
+      MOV AX,DestOffset
+      OUT DMABase0 + DMAOffset1,AL
+      Delay
+      XCHG AL,AH
+      OUT DMABase0 + DMAOffset1,AL
+      Delay
+
+      ;Set byte counts for channels zero and one.
+      MOV AX,NumBytes
+      OUT DMABase0 + DMABCount0,AL
+      Delay
+      XCHG AL,AH
+      OUT DMABase0 + DMABCount0,AL
+      Delay
+
+      MOV AX,NumBytes
+      OUT DMABase0 + DMABCount1,AL
+      Delay
+      XCHG AL,AH
+      OUT DMABase0 + DMABCount1,AL
+      Delay
+
+      ;Set mode.
+      MOV AL,Block + Increment + Read + Channel0
+      OUT DMABase0 + DMAMode,AL
+      Delay
+
+      MOV AL,Block + Increment + Write + Channel1
+      OUT DMABase0 + DMAMode,AL
+      Delay
+
+      ;Enable channels zero and one.
+      MOV AL,Clear + Channel0
+      OUT DMABase0 + DMASMask,AL
+      Delay
+      MOV AL,Clear + Channel1
+      OUT DMABase0 + DMASMask,AL
+      Delay
+
+      ;Send command byte.
+      MOV AL,Mem2Mem ; + Channel0Hold
+      OUT DMABase0 + DMACmd,AL
+      Delay
+
+      ;Set the DMA request.
+      MOV AL,Set + Channel0
+      OUT DMABase0 + DMAReq,AL
+      Delay
+
+      ;Quit
+      RET
+

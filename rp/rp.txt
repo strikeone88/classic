@@ -1,0 +1,96 @@
+
+    RP.TXT
+
+    RedStar Package Format Specification Version 4
+
+    Copyright (C) 2007-2012 RedStar Technologies
+    Written by J. Palencia (ciachn@gmail.com)
+
+	------------------------------------------------------------------------------------------
+
+	The RP format has come a long way since first version, the current new version 4 includes
+	mostly changes to the utility tool but not the V3 format. The following is a brief description
+	of how this format is laid out.
+
+	1. Header Format
+
+	All RP files include a header as their first initial bytes. Note that all hexadecimal values shown
+	in the structure are supposed to be stored as big-endian. The header is as follows:
+
+        Offset  Size    Symbol      Description
+        ------------------------------------------------------------
+        0x000   Word    Signature   Value 0x7270 (rp)
+
+        0x002   Dword   FCount      Count of Files
+
+        0x006   Dword   DCount      Count of Directories
+
+        0x00A   Word    Flags       D15		Entry Headers Encrypted
+                                    D14     File Data Encrypted
+                                    D13     Keyword is Eve-Hash
+                                    D12-D0  Reserved for future use.
+
+        0x00C   Dword   Reserved    Should be zero.
+
+        0x010   ?       PEntries    Package Entries
+        ------------------------------------------------------------
+
+	After the headers several package entries follow (up to FCount+DCount). The format of each entry
+	is as follows:
+
+    2. Package Entry Format
+
+        Offset  Size    Symbol      Description
+        ------------------------------------------------------------
+        0x000   Word    E_Size      Size of the entry in bytes. All entries are aligned to
+                                    DWORD, therefore sometimes a few extra zero bytes are
+									appended to pad. This field is used to determine the actual
+									size of the entry.
+
+        0x002   Word    Signature   Value 0x7265 (re)
+
+        0x004   Byte    Flags       D7      Directory
+                                    D6-0    Reserved
+
+        0x005   Byte    Hour        Hour (24 hour format)
+
+        0x006   Byte    Minutes     Minutes
+
+        0x007   Word    Year        Year
+
+        0x009   Byte    Month       Month (1-12)
+
+        0x00A   Byte    Day         Day (1-31)
+
+        0x00B   Dword   FLen        File length
+
+        0x00F   Word    NLen        Filename Length
+
+        0x010   Byte    Extra       Count of Pad bytes in the file. Since all data is
+									aligned to DWORD, a few bytes are used to pad the
+									file data. This indicates the amount of extra bytes.
+
+        0x011   Word    Signature   Value 0x6572 (er)
+
+        0x013   Word    Reserved    Should be zero.
+
+        0x011   NLen    FName       Filename (NLen Bytes)
+
+        ?       ?       FData       File Data
+        ------------------------------------------------------------
+
+	3. Encryption
+
+    To encrypt or decrypt data you need a keyword, the algorithm used for this version is
+	Angela. When encrypting entry headers make sure you leave the first word normal. It is
+	not allowed to encrypt the headers and not encrypt the data. The file length should be
+	written "as is" but in the RP is aligned by 4. When only data is being encrypted you'll
+	find 16-bytes of data after the header that are used to test the keyword, the string is
+	"Angela Algorithm".
+
+    Note that the provided keyword to encode the package is also encoded using Angela with
+	default NULL keyword. If the keyword's length is not multiple of four, zeroes are added to
+	pad.
+	
+	When the bit 13 of the header flags is set then the keyword provided by the user should be
+    converted to a 128-bit Eve hash and that hash should be used as the new keyword.

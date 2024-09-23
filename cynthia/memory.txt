@@ -1,0 +1,32 @@
+
+    MEMORY.TXT
+
+    Cynthia Flat-Mode Platform Version 0.01 - Memory Map
+
+    Copyright (C) 2008-2009 RedStar Technologies
+    Written by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    000000-0005FF   Reserved (1536 Bytes)
+    000600-00FFFF   Free Low Memory (62.5 KB)
+    010000-0101FF   Cynthia's Stuff (0.5 KB)
+    010200-08FFFF   Free Low Memory (511.5 KB)
+    090000-097FFF   Temporal Real Mode Area (8 Pages, 32 KB)
+    098000-099FFF   V86 Stack (2 Pages, 8 KB)
+    09A000-09DFFF   Real Mode Code (4096 DoubleWords, 16 KB)
+    09E000-09FFFF   Cynthia Stack (2 Pages, 8 KB)
+   *09A000-09A003*  V86 Interrupt Execution (1 DoubleWord)
+    0A0000-0FFFFF   Reserved by BIOS (384 KB)
+    100000-10FFFF   Cynthia Core (64 KB)
+    110000-18DDFF   Cynthia's Client (503.5 KB)
+    18DE00+         Free Upper Memory
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    ** Entry from Core to Client **
+
+    Stack:
+        Total Amount of Memory Available in the System
+        Service Table Flags Address
+        Service Table Address

@@ -1,0 +1,4 @@
+    static unsigned <<NameHere>>> [] =
+    {
+        L%#binary% word $InFile "        " "0x%04x, :0x%04x,"
+    };

@@ -1,0 +1,706 @@
+                           -------------------------
+                           |     DMA Tutorial      |
+                           |     Revision 1.20     |
+                           |     Aug 01, 1994      |
+                           |    By Tom Marshall    |
+                           | 1:3407/12.2 (Fidonet) |
+                           -------------------------
+
+INTRODUCTION
+============
+    I recently got into SoundBlaster programming, which requires DMA.
+    Information on DMA programming is extremely scarce, and it seems that
+    someone is always asking how to use it, so I decided to write a document
+    on using the DMA.  None of the information in this document was obtained
+    from "hard" sources (books, tech sheets, etc.)  Everything here was
+    gleaned from other text files.  Some is tested, some is not.  Some
+    information (especially on 16-bit channels) is extrapolated.  If a
+    register or option is not explained fully, it is probably because the
+    information was copied and I don't know myself.  Use this information at
+    YOUR OWN RISK!  If you find any errors or typos, please let me know via
+    the 80XXX echo or netmail.  I would like to thank the following people for
+    their help in my quest for DMA information:
+
+    James Vahn (1:346/25.3) - James keeps the 80XXX snippets, the source for
+        most of this information.  If it weren't for him, I'd still be
+        pestering people for information!
+    Draeden of VLA (Unknown) - Draeden wrote a great article on DMA
+        programming with sample code.  I hear he's put out some good stuff on
+        graphics, too.
+    Inbar Raz (2:403/123.5) - Inbar posted a message on 80XXX about two years
+        listing all the DMA ports.  I filed it away for future use, and it
+        came in very handy as a supplement to Draeden's article.
+    Jim Roberts (1:301/40) - Jim wrote an article on SoundBlaster programming
+        which covers DMA transfers and includes sample code.  His article also
+        explains how to use the mysterious Auto-Init DMA mode on the SB.
+    Coridon Henshaw (1:250/820) - Corrections and updates.
+    Bruce Wedding (1:106/4708) - Corrections and updates.
+
+    This document explains how to utilize the DMA channels on a standard AT
+    class machine.  The AT maintains backward compatibility with the XT by
+    using one 8-bit DMA controller and one 16-bit DMA controller.  The 8-bit
+    channels are 0-3 and the 16-bit channels are 4-7.  Although no provision
+    is made in this document to explain DMA on the XT, programming the DMA
+    controller is similar between the two machines.  The same ports are used
+    for the 8-bit channels; however the XT doesn't have any 16-bit channels.
+    The XT also uses DMA channels for different functions than the AT:  the
+    only free DMA channel on the XT is 1.  The following table illustrates
+    each channel's usage on both machines (corrections, please?):
+
+    Channel   Size      Usage in XT         Usage in AT
+    -------  ------  ------------------  ------------------
+       0      8-Bit  Memory refresh *    Free for use *
+       1      8-Bit  Free for use *      Free for use *
+       2      8-Bit  Floppy controller   Floppy controller
+       3      8-Bit  HDD controller      Free for use
+       4     16-Bit  N/A                 Cascade, not avail
+       5     16-Bit  N/A                 Free for use
+       6     16-Bit  N/A                 Free for use
+       7     16-Bit  N/A                 Free for use
+
+    * Also used for memory-to-memory transfers
+
+DMA LIMITATIONS AND APPLICATIONS
+================================
+    DMA transfer speed is significantly slower than manual transfers.  There
+    are several reasons for this, including backward compatibility with the XT
+    and limited buss bandwidth.  One text file I read (author unknown) said
+    that the theoretical maximum transfer speed is about 350k/sec on the 8-bit
+    channels.  I would expect the 16-bit channels to transfer data twice as
+    fast as the 8-bit channels, but that's still not very fast by today's
+    standards.
+
+    DMA transfers are programmed using a page, offset, and length.  These are
+    analogous to the DS, SI, and CX registers when using REP MOVSB.  You don't
+    need a destination address because the peripheral "sees" the data on the
+    buss.  The page can be thought of as a DMA segment register.  It can be
+    set to any valid value, but it cannot change during a transfer.  The
+    offset and length are both 16 bits.  So there are two limits on DMA
+    transfers. First, the block of memory that is transferred cannot overflow
+    across pages.  For the 8-bit channels, the pages start at physical 64k
+    intervals and each is 64k long.  For the 16-bit channels, the pages start
+    at physical 64k intervals and each is 128k long (because the block size is
+    specified in words).  Second, the size of the DMA transfer is limited to
+    the length of the page (64k or 128k).
+
+    With all these restrictions on DMA transfers, why use DMA at all?  It's
+    quicker and easier to transfer information directly with the CPU.  The
+    answer is that DMA transfers take place in the background, without CPU
+    intervention.  While the DMA is transferring data, the CPU can continue
+    processing other information.  Aside from standard usage (drive
+    controllers), the most common use for DMA is transferring data to and from
+    sound cards.  It can also be used to transfer blocks of information from
+    one part of memory to another.  For example, DMA could enable you to send
+    digitized sound to the sound card and update the graphics screen in the
+    background while the CPU is calculating the next frame for the screen.
+
+
+DMA REGISTERS
+=============
+    The DMA registers are accessed via I/O ports.  In order to maintain
+    backward compatibility with the XT, the 16-bit registers are located in a
+    separate address range from the 8-bit channels.  Since DMA is implemented
+    on the motherboard, all DMA ports are in the range 00h-FFh.  The ports are
+    arranged as follows:
+
+        General Registers (8-bit)
+        =========================
+            Port  Access  Function
+            ----  ------  --------
+            08h   Rd/Wrt  Command and Status Register
+            09h      Wrt  Request Register
+            0Ah      Wrt  Single Mask Register
+            0Bh      Wrt  Mode Register
+            0Ch      Wrt  Clear Flip/Flop Register
+            0Dh      Wrt  Master Reset Register
+            0Eh      Wrt  Master Enable Register
+            0Fh      Wrt  Master Mask Register
+
+        General Registers (16-bit)
+        ==========================
+            D0h   Rd/Wrt  Command and Status Register
+            D2h      Wrt  Request Register
+            D4h      Wrt  Single Mask Register
+            D6h      Wrt  Mode Register
+            D8h      Wrt  Clear Flip/Flop Register
+            DAh      Wrt  Master Reset Register
+            DCh      Wrt  Master Enable Register
+            DEh      Wrt  Master Mask Register
+
+        Individual Channel Registers
+        ============================
+            Port  Access  Function
+            ----  ------  --------
+            00h   Wrt/Rd  Channel 0 Offset
+            01h   Wrt/Rd  Channel 0 Block Size / Countdown
+            02h   Wrt/Rd  Channel 1 Offset
+            03h   Wrt/Rd  Channel 1 Block Size / Countdown
+            04h   Wrt/Rd  Channel 2 Offset
+            05h   Wrt/Rd  Channel 2 Block Size / Countdown
+            06h   Wrt/Rd  Channel 3 Offset
+            07h   Wrt/Rd  Channel 3 Block Size / Countdown
+            87h   Wrt     Channel 0 Page Register
+            83h   Wrt     Channel 1 Page Register
+            81h   Wrt     Channel 2 Page Register
+            82h   Wrt     Channel 3 Page Register
+
+            C0h   Wrt/Rd  Channel 4 Offset
+            C2h   Wrt/Rd  Channel 4 Block Size / Countdown
+            C4h   Wrt/Rd  Channel 5 Offset
+            C4h   Wrt/Rd  Channel 5 Block Size / Countdown
+            C8h   Wrt/Rd  Channel 6 Offset
+            C6h   Wrt/Rd  Channel 6 Block Size / Countdown
+            CCh   Wrt/Rd  Channel 7 Offset
+            CEh   Wrt/Rd  Channel 7 Block Size / Countdown
+            8Fh   Wrt     Channel 4 Page Register
+            8Bh   Wrt     Channel 5 Page Register
+            89h   Wrt     Channel 6 Page Register
+            8Ah   Wrt     Channel 7 Page Register
+
+    As you can see, the registers are identical for both DMA controllers
+    (8-bit channels 0-3 and 16-bit channels 4-7).  Each register is described
+    once in the following list.  Some functions may not apply to the 16-bit
+    controller, (which? is 16bit mem-mem allowed?).  As I stated earlier, I
+    don't have a lot of information on the 16-bit channels.  When selecting a
+    channel in binary for the 16-bit controller, subtract 4 from the channel
+    number.  For example, channel 5 would be 01b.  You MUST disable a channel
+    before you can program it.
+
+        Command Register (Port 08h, D0h - Write)
+        ========================================
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            7         1 = DACK (DMA Acknowledge) sensing active high
+                      0 = DACK sensing active low (default, do not change) *
+             6        1 = DRQ (DMA Request) sensing active low
+                      0 = DRQ sensing active high (default, do not change) *
+              5       1 = Extended write mode ** \ Irrelevant
+                      0 = Late write mode **     /  if b3=1
+               4      1 = Rotating priority
+                      0 = Fixed priority (default)
+                3     1 = Compressed timing (???)    \ Irrelevant
+                      0 = Uncompressed timing (???)  /  if b0=1
+                 2    1 = Controller disabled
+                      0 = Controller enabled
+                  1   1 = Enable channel 0 (4?) address hold ***
+                      0 = Disable channel 0 (4?) address hold ***
+                   0  1 = Enable memory-to-memory transfer (8-bit only?)
+                      0 = Disable memory-to-memory transfer (8-bit only?)
+
+            *   b7,b6 require hardware modifications for usage.
+            **  b5 used for mem-mem xfers. [CH]
+            *** If set, channel 0 will not increment/decrement its address.
+                This can be used to set a block of memory to one value with a
+                mem-mem transfer, similar to REP STOSB.
+
+        Status Register (Port 08h, D0h - Read)
+        ======================================
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            7         1 = Channel 3/7 has a request pending
+             6        1 = Channel 2/6 has a request pending
+              5       1 = Channel 1/5 has a request pending
+               4      1 = Channel 0/4 has a request pending
+                3     1 = Channel 3/7 at terminal count (transfer done)
+                 2    1 = Channel 2/6 at terminal count (transfer done)
+                  1   1 = Channel 1/5 at terminal count (transfer done)
+                   0  1 = Channel 0/4 at terminal count (transfer done)
+
+            If a request is pending, it means that some device has asserted
+            that channel's DRQ line on the bus and is requesting a DMA
+            transfer.  These bits don't really have any use other than code
+            testing.  [CH]
+
+        Request Register (Port 09h, D2h - Write)
+        ========================================
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            76543     Unused
+                 2    1 = Set request
+                      0 = Reset request
+                  10  Channel number (binary)
+
+            If the request bit is set, the channel will begin transferring
+            regardless of the DREQ state.  Used to start DMA transfers via
+            software, such as mem-mem transfers. [BW]
+
+        Single Mask Register (Port 0Ah, D4h - Write)
+        ============================================
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            76543     Unused
+                 2    1 = Set mask (disable channel)
+                      0 = Reset mask (enable channel)
+                  10  Channel number (binary)
+
+        Mode Register (Port 0Bh, D6h - Write)
+        =====================================
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            76        Select transfer mode*:
+                        00 = Demand mode
+                        01 = Single mode
+                        10 = Block mode
+                        11 = Cascade mode
+              5       1 = Select address decrement
+                      0 = Select address increment
+               4      1 = Enable auto-init (continuous loop)
+                      0 = Disable auto-init (single xfer)
+                32    Transfer type:
+                        00 = Verify (NOP)
+                        01 = Write (to memory)
+                        10 = Read (from memory)
+                        11 = Undefined
+                  10  Channel number (binary)
+
+            * Demand mode: "Normal mode for ... slow devices." [CH]
+              Single mode: I use this for the SB.  Description, anyone?
+              Block mode: "Everything else uses block mode." [CH]
+                Supposedly used for mem-mem transfers also. (?)
+              Cascade mode: Cascade mode is used ONLY for channel 4.  BIOS
+                programs channel 4 at boot for cascading; don't mess with it
+                or you will disable all the high DMA channels!
+
+        Clear F/F Register (Port 0Ch, D8h - Write)
+        ==========================================
+            Also called "Clear Byte Pointer Register".  Any write to this
+            register resets the internal pointers for the 16-bit registers.
+            The 16-bit registers accept two bytes in sequence, low byte first.
+            By writing to this register, you ensure that the program and the
+            DMA controller are in sync.  This is useful because some errant
+            program may inadvertently write a single value to a 16-bit DMA
+            register, getting it "out of sync".
+
+        Master Reset Register (Port 0Dh, DAh - Write)
+        =============================================
+            Any write to this register resets the controller and all four of
+            its channels.
+
+        Master Enable Register (Port 0Eh, DCh - Write)
+        ==============================================
+            Any write to this register enables all four channels on the
+            controller.
+
+        Master Mask Register (Port 0Fh, DEh - Write)
+        ============================================
+            Allows all channels to be programmed (enabled or disabled) at the
+            same time.
+
+            Bit(s)    Function
+            --------  ------------------------------------------------------
+            7654      Unused
+                3     1 = Disable channel 3/7
+                      0 = Enable channel 3/7
+                 2    1 = Disable channel 2/6
+                      0 = Enable channel 2/6
+                  1   1 = Disable channel 1/5
+                      0 = Enable channel 1/5
+                   0  1 = Disable channel 0/4
+                      0 = Enable channel 0/4
+
+        Page Registers (Write only)
+        ===========================
+            The page registers indicate the "page" of memory for a transfer.
+            A page is a block of 64k (or 128k) that is used as a base for the
+            transfer, much as a segment register is used as a base for memory
+            addressing.  The 8-bit channels only use the lower 4 bits of the
+            page value, so they are limited to the first meg of memory.  The
+            16-bit channels use all 8 bits of the page value.  In addition,
+            the 16-bit pages are 128k long since the transfers are in words.
+            So the 16-bit channels may access the first 32 megs of memory.  In
+            286 systems, there are only 24 address lines, so bit 7 should
+            always be 0.  In 386+ systems, bit 7 may or may not be used,
+            depending on the motherboard design.
+
+            Page Register (8-bit channel)
+            -----------------------------
+            xxxxPPPP : Page number, 0 to 15
+
+            Page Register (16-bit channel)
+            ------------------------------
+            PPPPPPPP : Page number, 0 to 255
+
+        Offset Registers (Write/Read)
+        =============================
+            Writing to the offset registers sets the starting offset for a
+            transfer.  Reading from the offset registers gives the current
+            offset in an active DMA transfer.  These registers are 16 bits
+            wide for both 8-bit and 16-bit channels.  For 8-bit channels, the
+            offset is indicated directly.  For 16-bit channels, the offset is
+            indicated in words.  This means that the value programmed into the
+            offset register must be half the actual offset, and the transfers
+            must be word aligned.  The offset registers use standard Intel
+            word ordering; send/read the low byte of the offset first,
+            followed by the high byte.  It's a good idea to reset the byte
+            pointer flip/flop before reading or writing to this register to
+            ensure that your program and the controller are in sync.  The
+            physical address for a DMA transfer is:
+
+                 8-bit channels: Page * 128k + Offset
+                16-bit channels: Page * 128k + (Offset * 2)
+
+        Block Size / Countdown Registers (Write/Read)
+        =============================================
+            Writing to the block size registers sets the DMA block length.
+            Reading from the countdown registers gives the remaining block
+            size MINUS ONE for an active DMA transfer.  When a transfer is
+            complete, the countdown register is equal to -1 (0FFFFh).  Note
+            that both registers reside at the same port address; the one
+            selected depends on whether you are reading or writing.  These
+            registers indicate the transfer length in bytes (8-bit) or words
+            (16-bit). This value is the actual block length MINUS ONE.  This
+            allows a full 64k (or 128k) block to be transferred at a time.
+            These are 16-bit registers, so the maximum transfer size for the
+            8-bit channels is 64k, and the maximum transfer size for the
+            16-bit channels is 128k.
+
+    The order in which you program the registers doesn't really matter, as
+    long as you disable the channel first and reset the Byte F/F before
+    programming the 16-bit registers.  I have found that a convenient method
+    for DMA programming goes something like this:
+
+        1.  Disable channel
+        2.  Reset Byte F/F
+        3.  Set mode
+        4.  Set page
+        5.  Set offset
+        6a. Set block length
+        6b. Send block length to peripheral
+        7.  Enable channel
+        8.  Program peripheral to receive DMA
+
+SAMPLE CODE
+===========
+    The following code segments demonstrate how to use DMA.  I can't figure
+    out the memory-memory transfers, but I've included code that should work
+    if given the proper Command Register byte.  This code will run under TASM
+    in Ideal mode as listed. If you are using MASM (or MASM mode), reverse the
+    PROC and ENDP statements as indicated.  If you are using any other
+    assembler that doesn't support MASM syntax, you're on your own.  These
+    routines use multiple bit shifts, so you must enable 286+ processing (with
+    P286N or .286).
+
+    ;***********************************************************************
+    ;* DMA8 - Setup an 8-bit DMA transfer.                                 *
+    ;* Entry:    AH = DMA channel (0-3)                                    *
+    ;*           AL = Mode (see below)                                     *
+    ;*        ES:DI = 8-bit DMA normalized transfer address                *
+    ;*           CX = Block length (64k=0000h)                             *
+    ;* Exit :    CX = Block length minus one                               *
+    ;*           CF = 1 : Page overflow, transfer not attempted            *
+    ;*           CF = 0 : Transfer in progress                             *
+    ;* Regs : AX, BX, DX modified                                          *
+    ;* Note : Common modes for DMA programming are:                        *
+    ;*        44h : Single Write - Write block to memory (from buss)       *
+    ;*        48h : Single Read - Read block from memory (to buss)         *
+    ;*        54h : Auto-Init Write - Write block to memory with looping   *
+    ;*        58h : Auto-Init Read - Read block from memory with looping   *
+    ;***********************************************************************
+    PROC        DMA8                            ;"DMA8 PROC" for MASM
+                and     ah,3                    ;Ensure channel correct
+                and     al,NOT 3                ;Ensure mode correct
+                or      ah,al                   ;Combine them
+                dec     cx                      ;Fixup length
+
+                mov     dx,di                   ;Check for overflow
+                add     dx,cx
+                jo      @@BadAddr
+
+                mov     al,ah                   ;Disable channel
+                and     al,3
+                or      al,100b
+                out     0Ah,al
+
+                xor     al,al                   ;Reset byte F/F
+                out     0Ch,al
+
+                mov     al,ah                   ;Set mode
+                out     0Bh,al
+
+                mov     dx,2137h                ;Magic DMA page reg convert
+                mov     cl,ah                   ;  for DMA0..3
+                shl     cl,2                    ;  DMA0 => 87h
+                shr     dx,cl                   ;  DMA1 => 83h
+                and     dx,0000Fh               ;  DMA2 => 81h
+                add     dx,00080h               ;  DMA3 => 82h
+
+                mov     bx,es                   ;Set page
+                mov     al,bl
+                out     dx,al
+
+                mov     dl,ah                   ;Set offset
+                and     dl,3
+                shl     dl,1                    ;Port = Channel*2
+                mov     bx,di
+                mov     al,bl
+                out     dx,al
+                mov     al,bh
+                out     dx,al
+
+                inc     dl                      ;Set block length
+                mov     al,cl                   ;Port = Channel*2 + 1
+                out     dx,al
+                mov     al,ch
+                out     dx,al
+
+                mov     al,ah                   ;Enable channel
+                and     al,3
+                out     0Ah,al
+
+    ;*** Setup peripheral here
+
+                clc                             ;Indicate success
+                ret
+
+    @@BadAddr:  stc                             ;Indicate failure
+                ret
+    ENDP                                        ;"DMA8 ENDP" for MASM
+
+    ;***********************************************************************
+    ;* DMA16 - Setup a 16-bit DMA transfer.                                *
+    ;* Entry:    AH = DMA channel (4-7)                                    *
+    ;*           AL = Mode (see below)                                     *
+    ;*        ES:DI = 16-bit DMA normalized transfer address               *
+    ;*           CX = Block length in words (128k=0000h)                   *
+    ;* Exit :    CX = Block length in words minus one                      *
+    ;*           CF = 1 : Page overflow, transfer not attempted            *
+    ;*           CF = 0 : Transfer in progress                             *
+    ;* Regs : AX, BX, DX modified                                          *
+    ;* Note : Common modes for DMA programming are:                        *
+    ;*        44h : Single Write - Write block to memory (from buss)       *
+    ;*        48h : Single Read - Read block from memory (to buss)         *
+    ;*        54h : Auto-Init Write - Write block to memory with looping   *
+    ;*        58h : Auto-Init Read - Read block from memory with looping   *
+    ;***********************************************************************
+    PROC        DMA16                           ;"DMA16 PROC" for MASM
+                and     ah,3                    ;Ensure channel correct
+                and     al,NOT 3                ;Ensure mode correct
+                or      ah,al                   ;Combine them
+                dec     cx                      ;Fixup length
+
+                mov     dx,di                   ;Check for overflow
+                add     dx,cx
+                jo      @@BadAddr
+
+                mov     al,ah                   ;Disable channel
+                and     al,3
+                or      al,100b
+                out     0D4h,al
+
+                xor     al,al                   ;Reset byte F/F
+                out     0D8h,al
+
+                mov     al,ah                   ;Set mode
+                out     0D6h,al
+
+                mov     dx,0A9BFh               ;Magic DMA page reg convert
+                mov     cl,ah                   ;  for DMA4..7
+                shl     cl,2                    ;  DMA4 => 8Fh
+                shr     dx,cl                   ;  DMA5 => 8Bh
+                and     dx,0000Fh               ;  DMA6 => 89h
+                add     dx,00080h               ;  DMA7 => 8Ah
+
+                mov     bx,es                   ;Set page
+                mov     al,bl
+                out     dx,al
+
+                mov     dl,ah                   ;Set offset
+                and     dl,3
+                shl     dl,2                    ;Port = Channel*4 + C0h
+                add     dl,0C0h
+                mov     bx,di
+                mov     al,bl
+                out     dx,al
+                mov     al,bh
+                out     dx,al
+
+                inc     dl                      ;Set block length
+                mov     al,cl                   ;Port = Channel*2 + C0h + 1
+                out     dx,al
+                mov     al,ch
+                out     dx,al
+
+                mov     al,ah                   ;Enable channel
+                and     al,3
+                out     0D4h,al
+
+    ;*** Setup peripheral here
+
+                clc                             ;Indicate success
+                ret
+
+    @@BadAddr:  stc                             ;Indicate failure
+                ret
+    ENDP                                        ;"DMA16 ENDP" for MASM
+
+    ;***********************************************************************
+    ;* DMA8_M2M - Setup an 8-bit memory-to-memory transfer (INCOMPLETE)    *
+    ;* Entry: DS:SI = 8-bit DMA normalized source address                  *
+    ;*        ES:DI = 8-bit DMA normalized destination address             *
+    ;*           CX = Block length in bytes (64k=0000h)                    *
+    ;* Exit :    CX = Block length minus one                               *
+    ;*           CF = 1 : Page overflow, transfer not attempted            *
+    ;*           CF = 0 : Transfer in progress                             *
+    ;* Regs : AX, DX modified                                              *
+    ;* Note : Uses DMA channels 0 and 1.  WHY WON'T THIS WORK?             *
+    ;***********************************************************************
+    PROC        DMA8_M2M                        ;"DMA8_M2M PROC" for MASM
+                stc                             ;Not functional!
+                ret                             ;Exit
+                dec     cx                      ;Fixup length
+
+                mov     ax,si                   ;Check for overflow
+                add     ax,cx
+                jo      @@BadAddr
+                mov     ax,di
+                add     ax,cx
+                jo      @@BadAddr
+
+                mov     al,100b                 ;Disable DMA0
+                out     0Ah,al
+                mov     al,101b                 ;Disable DMA1
+                out     0Ah,al
+
+                mov     al,00000001b            ;Set command reg
+                out     08h,al
+
+                xor     al,al                   ;Reset byte F/F
+                out     0Ch,al
+
+                mov     al,10001000b            ;DMA0: Block/Inc/Read
+                out     0Bh,al
+                mov     al,10000101b            ;DMA1: Block/Inc/Write
+                out     0Bh,al
+
+                mov     dx,ds                   ;DMA0: Page = DS
+                mov     al,dl
+                out     87h,al
+                mov     dx,es                   ;DMA1: Page = ES
+                mov     al,dl
+                out     83h,al
+
+                mov     dx,si                   ;DMA0: Offset SI
+                mov     al,dl
+                out     00h,al
+                mov     al,dh
+                out     00h,al
+                mov     dx,di                   ;DMA1: Offset DI
+                mov     al,dl
+                out     02h,al
+                mov     al,dh
+                out     02h,al
+
+                mov     al,cl                   ;DMA0: Length CX
+                out     01h,al
+                mov     al,ch
+                out     01h,al
+                mov     al,cl                   ;DMA1: Length CX
+                out     03h,al
+                mov     al,ch
+                out     03h,al
+
+                mov     al,000b                 ;Enable DMA0
+                out     0Ah,al
+                mov     al,001b                 ;Enable DMA1
+                out     0Ah,al
+
+                mov     al,100b                 ;Set DREQ0
+                out     09h,al
+
+                clc                             ;Indicate success
+                ret
+
+    @@BadAddr:  stc                             ;Indicate failure
+                ret
+    ENDP                                        ;"DMA8_M2M ENDP" for MASM
+
+    ;***********************************************************************
+    ;* NormDMA8 - Normalize a seg:ofs pointer to 8-bit DMA page:ofs form.  *
+    ;* Entry: ES:DI = Pointer                                              *
+    ;* Exit : ES:DI = DMA normalized pointer                               *
+    ;* Regs : AL, DX modified                                              *
+    ;***********************************************************************
+    PROC        NormDMA8                        ;"NormDMA8 PROC" for MASM
+                push    ax
+                push    dx
+
+                mov     dx,es                   ;Load DX and AX with segment
+                mov     ax,dx                   ;  for manipulation
+                shr     dx,12                   ;Page to DX
+                shl     ax,4                    ;Segment fixup to AX
+                add     di,ax                   ;Add to offset
+                adc     dx,0                    ;Overflow bumps page
+                mov     es,dx                   ;Save page in DS
+
+                pop     dx
+                pop     ax
+                ret
+    ENDP                                        ;"NormDMA8 ENDP" for MASM
+
+    ;***********************************************************************
+    ;* DMA8Stat - Check status of 8-bit DMA transfer.                      *
+    ;* Entry: AH = DMA channel                                             *
+    ;* Exit : CX = Bytes remaining MINUS ONE or -1 if done                 *
+    ;* Regs : AL modified                                                  *
+    ;* Note : To check 16-bit DMA, change the port to Channel*4 + 1 + C0h. *
+    ;*        CX will be returned as WORDS remaining.                      *
+    ;***********************************************************************
+    PROC        DMA8Stat                        ;"DMA8Stat PROC" for MASM
+                push    dx
+
+                xor     al,al                   ;Reset byte F/F
+                out     0Ch,al
+
+                and     ah,3                    ;Ensure channel correct
+                xor     dx,dx                   ;Port = Channel*2 + 1
+                mov     dl,ah
+                shl     dl,1
+                inc     dl
+
+                in      al,dx                   ;Get low byte
+                mov     cl,al
+                in      al,dx                   ;Get high byte
+                mov     ch,al
+
+                pop     dx
+                ret
+    ENDP                                        ;"DMA8Stat ENDP" for MASM
+
+    ;***********************************************************************
+    ;* DMA8BlkReq - Request 64k block of memory for 8-bit DMA transfers.   *
+    ;* Entry: None                                                         *
+    ;* Exit : NC = Success                                                 *
+    ;*          ES = MCB Handle                                            *
+    ;*          DX = Base DMA Segment                                      *
+    ;*         C = Failure                                                 *
+    ;*          AX = Error code from DOS                                   *
+    ;* Regs : AX, BX                                                       *
+    ;* Note : Must have 128k free due to limits of segment architecture.   *
+    ;*        MCB length adjusted before exit (between 64k-128k).          *
+    ;***********************************************************************
+    PROC        DMA8BlkReq                      ;"DMA8BlkReq PROC" for MASM
+                mov     bx,1FFFh                ;Request 128k-16
+                mov     ah,48h
+                int     21h
+                jc      @@Error
+
+                mov     dx,ax                   ;DX=AX=Handle
+                add     dx,00FFFh               ;Calc Base
+                and     dx,0F000h               ;  =(Handle+0FFFh) && F000h
+                mov     bx,dx                   ;Calc new length
+                sub     bx,ax                   ;  =(Base-Handle)+1000h
+                add     bx,1000h
+
+                mov     es,ax
+                mov     ah,4Ah                  ;Adjust block size
+                int     21h
+    @@Error:    ret
+    ENDP                                        ;"DMA8BlkReq ENDP" for MASM
+
+***EOF***
+

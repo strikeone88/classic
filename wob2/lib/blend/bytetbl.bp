@@ -1,0 +1,2 @@
+^Name LABEL BYTE 
+L%#binary% byte $InFile "    db " "0%02xh, :0%02xh"

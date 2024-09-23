@@ -1,0 +1,720 @@
+
+From ASM-101 Programmers technical reference
+--------------------------------------------
+
+PC hardware interrupts and the                  ³
+   8259 Programmable Interrupt Controller (PIC) ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Like most processors, hardware interrupts on 80x86 based computers come
+two varieties... Non Maskable Interrupts and Maskable interrupts.
+
+
+PIC/CPU response to an interrupt request ³
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Most interrupt requests (IRQ's) are exactly that... Requests for
+interrupt service.  They are not demands as are NMI's, and can be
+temporarily turned off or masked by a software command when a program
+enters a critical section of code that shouldn't be interrupted.
+
+  The 8259 PIC signals that it needs attention by raising the Interrupt
+line to the CPU. If the CPU has its IRQ's input enabled, it samples its
+interrupt input at the end of each instruction.  If an interrupt
+condition is detected, the CPU sends an "interrupt acknowledge" signal
+back too the 8259 PIC indicating that it is ready to service the
+interrupt.
+
+  Upon receipt of the "interrupt acknowledge", the 8259 puts the number
+of the appropriate Interrupt Service Routine (ISR) on the data bus.  The
+CPU reads this ISR number, multiplies it by 4, and dispatches to the
+appropriate ISR by using this value as an offset into it's interrupt
+vector table found at address 0000:0000H
+
+  If there were only one hardware device that could request an interrupt
+or if only one device asked for service at a time, this scheme would
+work fine.  However, most 8088 based computers have many devices and no
+guarantee that they won't need service simultaneously.  To arbitrate
+conflicts between hardware devices, INTEL has designed a companion chip
+for the 8088 called the 8259 Programmable Interrupt Controller - (PIC).
+
+  Each hardware device that needs interrupt service has access to an
+interrupt request line (IRQ) on the computer's bus.  Each IRQ line goes
+to a different input pin on a PIC. The first PIC (and the only one on an
+XT compatible) is connected to IRQ 0 through IRQ 7, and the second to
+IRQ 8 to IRQ 15.  When there are two PICs, the second is run as a slave
+to the first and its output is connected to the master as IRQ 2.
+
+  Each pin or (IRQ) on a PIC has a priority that can be changed with
+software instructions.  Normally, pin 0 has highest priority and pin 7
+has the lowest.  When an interrupt request shows up at an input pin, the
+PIC checks to see whether any higher-priority interrupt is currently
+being serviced.  If not, the PIC sends an interrupt signal to the CPU,
+followed by that pin's interrupt number.  If a higher priority interrupt
+is being serviced, the PIC remembers the interrupt and sends it to the
+CPU when all interrupts of higher priority have been serviced.
+
+  The Interrupt Service Routine number associated with each IRQ can be
+changed with software.  Normally, the BIOS sets up the relationships
+between IRQs and ISRs during initialization and DOS (and nearly all
+applications) leave them unchanged.  On a PC compatible, IRQ 0 through
+IRQ 7 are associated with interrupts 8 through 0FH.  On AT+ computers,
+IRQ 8 through IRQ 15 are associated with interrupts 070H through 077H.
+Because CPU exceptions can also generate interrupts 08H through 0FH,
+multitaskers and operating systems like Desqview and OS/2 re-map the
+first set of IRQs, usually to the range of 050H to 057H.
+
+  At least two devices are assigned permanent IRQs by the circuitry in
+every PC.  The system timer is always attached to IRQ0, It interrupts
+the computer about 18.2 times per second to allow the BIOS to update the
+system time and date.
+
+  IRQ 1 is permanently assigned to the keyboard.  Each time you press or
+release a key, the keyboard's internal processor sends a code to the
+keyboard controller in the computer over the ...
+
+  On AT+ machines, IRQ2 (on the master PIC) is tied to the secondary or
+slave PIC.  The slave PIC handles IRQ8 through IRQ 15.
+
+  Because COM2 is connected to a lower-numbered IRQ than COM1, it gets
+priority over COM1.  If you have a modem with a mouse connected to two
+different serial ports, and if you use a Windows terminal program or
+another communications program with mouse support, it is wise to put the
+modem on COM2 and the mouse on COM1.  Otherwise, mouse movement may
+interrupt data arriving through the modem.
+
+<All hardware ports should be manipulated with interrupts masked to
+prevent them from being put in an unstable state>
+
+
+NMI - Non Maskable Interrupts ³
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Non maskable interrupts are intended to be connected to high priority
+events that demand immediate processor attention.  Typically these
+events include, impending loss of power, critical peripheral failures,
+and as in the case of the PC, memory errors.
+
+  When a non maskable interrupt input line is toggled, the 80x86 will
+call the interrupt vector #2, at segment:offset 000:08H (Dword).
+
+  As its name implies, the 80x86 CPU can not ignore this interrupt, and
+must use external circuitry to gate the interrupt input if required.
+
+  In the case of the PC, the NMI is attached to the RAM parity check
+circuitry and is tripped when the PC identifies a parity error on any
+read from memory.
+
+  Although the 80x86 series of processors can not mask the NMI directly,
+external components can be used to do so. The PC provides a NMI gate at
+port 070H. Bit 7 of this port is use to gate the NMI.  When bit 7 = 1
+the NMI is disabled,  When bit 7 = 0 the NMI is enabled.
+
+
+Maskable Interrupts ³
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  80x86 class computers have a very robust interrupt structure
+supporting up to 256 distinct interrupt sources.  This interrupt
+capability comes at the cost of increased hardware complexity for those
+devices that request interrupts from the CPU.
+
+  In brief, all interrupting devices must be connect to the CPU's INTR
+pin, and when appropriate pass an interrupt number to the CPU over the
+system bus.
+
+  When an external device toggles the INTR pin, the 8088 completes the
+currently executing instruction and then sends an interrupt acknowledge
+signal to all peripherals.  The device requesting the interrupt must
+then place an interrupt number onto the system bus. The 8088 reads this
+number and calls the associated interrupt by dispatching to the
+interrupt routine pointed to by an entry in a 1024 byte (256 entry
+Dword) interrupt table starting at 000:00H
+
+  In order to simplify the design of 80x86 based systems that support
+interrupts, INTEL has designed a variety of chips that can mediate
+interrupt requests from multiple sources and provide the CPU with the
+appropriate handshaking and interrupt number for each device.
+
+  In PC class computers, the chip that is used for this purpose is the
+8259 or the 8259A Programmable Interrupt controller.
+
+  This complex chip, provides 8 separate interrupt inputs, and includes
+the appropriate logic to allow the 8088 to enable/disable each interrupt
+source, prioritize interrupts, and even specify the interrupt number to
+return to the CPU when an interrupt is requested.
+
+  Note that the base interrupt number associated with each hardware
+interrupt is programmable.  For each Interrupt controller, the base
+interrupt number can be set to any number in the range 0-32*8 -
+(0,8,16,24,32... ).  The base address of PIC1 for example is 08H.
+Hardware interrupt 1 - (IRQ 1) is therefore serviced by INT 08H.
+Hardware interrupt 2 - (IRQ 2) is serviced by INT 09H, IRQ 3 by INT 0AH
+etc.
+
+  In the original PC design, IBM included a single 8259.  Starting with
+the AT in 1985, IBM added a second 8259 PIC chip to the motherboard.
+This increased the number of interrupt sources from 8 to a total of 15
+(interrupt 2 on the original PIC is connected to the interrupt output
+of the second PIC).
+
+
+General 80x86 interrupt hardware configuration
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÚÄÄÄÄÄÄÄÄ¿
+³ RAM MEMORY ³  ³        ³
+³ ROM MEMORY ³  ³        ³
+ÀÄÄÄÄÂÄÄÄÄÄÄÄÙ  ³  8088  ³        PC-XT IRQ 0-7        AT+  IRQ 8-15
+     ³          ³  CPU   ³       ÚÄÄÄÄÄÄÄÄ¿           ÚÄÄÄÄÄÄÄÄ¿
+     ³          ³        ³       ³       0ÃÄÄ         ³       0ÃÄÄ
+  ÚÄÄÁÄÄÄ¿      ³        ³       ³       1ÃÄÄ         ³       1ÃÄÄ
+  ³ RAM  ³      ³    INTR³ÄÄÄÄÄÄ´ 8259  2ÃÄÄ ÄÄÄÄÄÄÄ´ 8259  2ÃÄÄ
+  ³ParityÃÄÄÄÄÄ³NMI     ³       ³ PIC   3ÃÄÄ         ³ PIC   3ÃÄÄ
+  ³Error ³      ÀÄÄÂÄÄÄÄÄÙ       ³       4ÃÄÄ         ³       4ÃÄÄ
+  ÀÄÄÂÄÄÄÙ         ³             ³       5ÃÄÄ         ³       5ÃÄÄ
+     ³             ³             ³       6ÃÄÄ         ³       6ÃÄÄ
+     ³             ³             ³       7ÃÄÄ         ³       7ÃÄÄ
+     ³  DATA BUS   ³             ÀÄÄÄÂÄÄÄÄÙ           ÀÄÄÄÂÄÄÄÄÙ
+     ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+  The set of interrupt inputs from the first PIC are Labeled IRQ0-IRQ7,
+and the second set of interrupt inputs are known as IRQ8-IRQ15.
+
+Note: Each PIC allows the 8088 to change the base address or base
+      interrupt number returned when an interrupt is called.
+
+      This means that IRQ1 does not need to map to interrupt vector #1
+      (INT 01H)!  IRQ1 can be made to vector to any of the 256
+      interrupts (mod 8) that the 80x86 supports. The table below shows
+      the IRQ to INT mapping, for a typical PC.
+
+Note: INT 2, was originally defined as a printer interrupt (LPT2) for PC
+      and XT class computers.  On AT class computers, this interrupt is
+      toggled by the interrupt output of the second PIC.
+
+Note: The interrupt structure of the 80x86 differs from that used in the
+      8080 and 8085.  With these earlier chips, the interrupt controller
+      needed to actually place an instruction on the CPU data bus,
+      (either RESET or CALL), and then place the absolute address of the
+      call in the next read cycle.  This is why the 8259 offers both an
+      8085 and 8086 interrupt mode. (See below)
+
+Note: On the PC ISA bus, hardware interrupts are triggered on the rising
+      edge of an IRQ line. (Edge triggered).
+
+      On PC's with Microchannel and PCI? bus's, the interrupt controller
+      is configured to be level sensitive.  EISA bus's can apparently be
+      configured to operate in either mode.
+
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ General interrupt structure for PC hardware                                  ³
+³         IRQ Refers to the hardware IRQ number                                ³
+³         INT Refers to the 8088 interrupt used when the hardware              ³
+³             interrupt is toggled.                                            ³
+ÃÄÄÄÂÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³IRQ³INT³  PC, XT, and PS30      ³  XT286, AT, and PS50+      ³ Comments       ³
+ÃÄÄÄÅÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³00H³08H³ Timer 8254             ³ Timer 8254                 ³                ³
+³01H³09H³ Keyboard               ³ Keyboard  8042             ³                ³
+³02H³0AH³ LPT2 Original PC only  ³ PIC-2 Cascade (see IRQ 9+) ³                ³
+³03H³0BH³ COM2 (shared by COM4)  ³ COM2 (shared by COM4) /    ³ Shared by      ³
+³   ³   ³                        ³ LAN adapter 2              ³ COM2-COM8 PS2  ³
+³04H³0CH³ COM1 (shared by COM3)  ³ COM1 (shared by COM3)      ³ Dedicated COM1 ³
+³   ³   ³                        ³                            ³ for PS2        ³
+³05H³0DH³ Fixed disk             ³ LPT2                       ³                ³
+³06H³0EH³ Diskette Controller    ³ Diskette Controller        ³                ³
+³07H³0FH³ LPT1 (printer)         ³ LPT1 (printer)             ³                ³
+³   ³   ³                        ³                            ³                ³
+³08H³70H³                        ³ CMOS clock                 ³                ³
+³09H³71H³ Redirected to 0AH AT+  ³ EGA/VGA Retrace            ³                ³
+³   ³   ³                        ³ LAN adapter 1              ³                ³
+³0AH³72H³                        ³ Reserved                   ³                ³
+³0BH³73H³                        ³ Reserved                   ³                ³
+³0CH³74H³                        ³ Reserved  /  PS/2 mouse    ³                ³
+³0DH³75H³                        ³ Coprocessor errors         ³                ³
+³   ³   ³                        ³ (redirect to NMI vector)   ³                ³
+³0EH³76H³                        ³ Fixed Disk Controller      ³                ³
+³0FH³77H³                        ³ Reserved                   ³                ³
+ÀÄÄÄÁÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Because more than one interrupt request can arrive at the same time,
+the 8259 PIC is designed so that each interrupt source can be given a
+priority.
+
+  When operating in priority mode, (the default mode on the PC), each
+interrupt has a different priority, with the lower number interrupts
+having highest priority.  When multiple IRQs occur, the PIC processes
+them and feeds them one at a time in a prioritized order into the CPU.
+
+
+  On the AT, where a second PIC is slaved to the first through INT 02H,
+PIC 1, the priority of interrupts 8-0FH of PIC 2, exist between INT 01
+and INT 03 of PIC 1.
+
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Hardware Interrupts by Precedence            ³
+³                        * = AT+ only          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ Interrupt ³ Function                         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ High      ³                                  ³
+³           ³                                  ³
+³ 0         ³ Timer 8254                       ³
+³ 1         ³ Keyboard                         ³
+³ 2Ä¿       ³ Cascade AT+   (LPT2 (PC/XT))     ³
+³   ³ ÚÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³   À³ 8 * ³ Real time Clock                  ³
+³     ³ 9 * ³ Software redirected to IRQ2      ³
+³     ³ A * ³ Reserved                         ³
+³     ³ B * ³ Reserved                         ³
+³     ³ C * ³ Reserved                         ³
+³     ³ D * ³ Math coprocessor                 ³
+³     ³ E * ³ Fixed disk controller            ³
+³     ³ F * ³ Reserved                         ³
+³     ÀÄÄÄÄÄÅÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ 3         ³ COM1                             ³
+³ 4         ³ COM2                             ³
+³ 5         ³ LPT2 on the AT (Fixed disk PCjr) ³
+³ 6         ³ diskette controller              ³
+³ 7         ³ LPT1                             ³
+³           ³                                  ³
+³ LOW       ³                                  ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  Note that the 8254 timer interrupt - the Jiffy Clock interrupt - is
+given the highest priority to prevent lower priority interrupts from
+preventing this critical service.
+
+
+
+8259 port addresses ³
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+The PC's 8259 PIC's are accessed through two port locations.  The lower
+port address forms the command/status register, the higher address forms
+the interrupt mask register.
+
+PIC1 is found at port address 020H-021H, and PIC2 (not found on PC/XT
+class PC's), is found at port address 0A0H-0A1H.  PIC2 is configured to
+be a slave of PIC1 on line IRQ-2.
+
+
+020H/0A0H  R
+PIC Interrupt request/in service registers programmed by Operation
+Command Word 3  (OCW3)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÁÄÁÄÁÄÁÄÁÄÁÄÁÄÄ  0 = No active request for interrupt
+                        Interrupt not being serviced.
+                    1 = Interrupt requested
+                        Interrupt being serviced
+
+Bit is cleared by sending an EOI to the Interrupt Controller
+
+
+020H/0A0H  W
+PIC Initialization Command Word 1 ICW1 (Bit 4 = 1)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÅÄÙ ³ ³ ³ ³ ÀÄÄÄ   0 = No ICW4 needed
+   ³   ³ ³ ³ ³        1 =    ICW4 needed
+   ³   ³ ³ ³ ÀÄÄÄÄÄ   0 = Cascade mode
+   ³   ³ ³ ³          1 = Single mode - no ICW3 needed
+   ³   ³ ³ ÀÄÄÄÄÄÄÄ   0 = Successive interrupt vectors
+   ³   ³ ³                are separated by 8 bytes
+   ³   ³ ³            1 = Successive interrupt vectors
+   ³   ³ ³                are separated by 4 bytes
+   ³   ³ ÀÄÄÄÄÄÄÄÄÄ   0 = Edged triggered mode
+   ³   ³              1 = Level triggered mode
+   ³   ÀÄÄÄÄÄÄÄÄÄÄÄ   1 = Must be 1
+   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 000 = Only used in 80/85 mode
+
+
+
+
+021H/0A1H  W
+ICW2, ICW3, ICW4 written in sequential order.  after ICW1 written to
+020H/0A0H
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+ICW2   W
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÁÄÅÄÁÄÙ ÀÄÅÄÙ
+     ³       ÀÄÄÄÄ    000 = Reserved
+     ÀÄÄÄÄÄÄÄÄÄÄÄÄ  xxxxx = Address lines A7-A3 of base vector address for
+                            interrupt controller.
+ICW3   W
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÁÄÁÄÁÄÁÄÁÄÁÄÁÄÄ  0 = Slave PIC not attached to this pin
+                    1 = Slave PIC attached to this pin
+ICW4   W
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÅÄÙ ³ ÀÂÙ ³ ÀÄÄ   0 = 80/85 mode
+   ³   ³  ³  ³       1 = 86/88 mode
+   ³   ³  ³  ÀÄÄÄÄ   0 = Normal EOI
+   ³   ³  ³          1 = Auto EOI
+   ³   ³  ÀÄÄÄÄÄÄÄ  00 = Non-Buffered Mode
+   ³   ³            01 = Non-Buffered Mode
+   ³   ³            10 = Buffered mode/slave
+   ³   ³            11 = Buffered mode/master
+   ³   ÀÄÄÄÄÄÄÄÄÄÄ   0 = No special fully-nested mode
+   ³                 0 = special fully-nested mode
+   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 000 = Reserved
+
+
+
+
+021H/0A1H  R/W
+PIC interrupt mask register (OCW1)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÁÄÁÄÁÄÁÄÁÄÁÄÁÄÄÄ  0 = enable interrupt source
+ ³ ³ ³ ³ ³ ³ ³ ³     1 = disable interrupt source
+ ³ ³ ³ ³ ³ ³ ³ ³
+ ³ ³ ³ ³ ³ ³ ³ ³     PIC 1          PIC2 - AT          PIC2 - PS/2
+ ³ ³ ³ ³ ³ ³ ³ ³
+ ³ ³ ³ ³ ³ ³ ³ ÀÄÄÄ 0 Timer         8 CMOS clock       8 CMOS clock
+ ³ ³ ³ ³ ³ ³ ÀÄÄÄÄÄ 1 Keyboard      9 Redirect cascade 9 Redirect cascade
+ ³ ³ ³ ³ ³ ÀÄÄÄÄÄÄÄ 2 Video/Cascade A Reserved         A Reserved
+ ³ ³ ³ ³ ÀÄÄÄÄÄÄÄÄÄ 3 Serial 1      B Reserved         B Reserved
+ ³ ³ ³ ÀÄÄÄÄÄÄÄÄÄÄÄ 4 Serial 2      C Reserved         C Mouse Int
+ ³ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄ 5 Fixed disk    D Coprocessor Int  D Coprocessor Int
+ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 6 Diskette      E Fixed disk Int   E Fixed disk Int
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 7 Printer       F Reserved         F Reserved
+
+
+021H/0A1H  W
+PIC Initialization Command Word 2 ICW2 (Bit 4 = 0 Bit 3 = 0)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ÀÄÅÄÙ ³ ³ ÀÄÅÄÙ
+   ³   ³ ³   ÀÄÄÄÄ  xxx = Interrupt request to which the command applies
+   ³   ³ ÀÄÄÄÄÄÄÄÄ    0 = Must be 0
+   ³   ÀÄÄÄÄÄÄÄÄÄÄ    0 = Must be 0
+   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄ  000 = Rotate in automatic EOI mode (clear)
+                    001 = Non-specific EOI  < Standard PC
+                    010 = No Operation
+                    011 = Specific EOI
+                    100 = Rotate in automatic EOI mode (set)
+                    101 = Rotate on non-specific EOI command
+                    110 = Set priority command
+                    111 = Rotate on specific EIO command
+
+EOI = End Of Interrupt
+
+EOI TYPES ³
+ÄÄÄÄÄÄÄÄÄÄÙ
+
+  The 8259 provides two different types of End of Interrupt (EOI)
+command (Specific and Non-Specific).
+
+  The Specific EOI command tells the interrupt controller that a
+specific interrupt has finished processing. This EOI type is intended to
+be used when the interrupt controller is running in non-prioritized
+mode.  When operating in this mode the 8259 does <NOT> know which
+interrupt is currently executing.
+
+  The Non specific EOI command tells the 8259 that the currently
+executing interrupt is complete.  This EOI type is intended to be used
+when the interrupt controller is running in prioritized mode.  When
+operating in this mode the 8259 knows which interrupt is currently
+executing (the interrupt with the highest priority).
+
+  Since the PC programs the 8259 to operate in prioritized mode,
+Non-specific EOI's are used.
+
+
+
+020H/0A0H  W
+Initialization Command Word 3 ICW3 (Bit 4 = 0 Bit 3 = 1)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+ÚÄÂÄÂÄÂÄÂÄÂÄÂÄÂÄ¿
+³7³6³5³4³3³2³1³0³
+ÀÂÁÂÁÂÁÂÁÂÁÂÁÂÁÂÙ
+ ³ ÀÂÙ ³ ³ ³ ÀÂÙ
+ ³  ³  ³ ³ ³  ÀÄÄÄ  00 = No operation
+ ³  ³  ³ ³ ³        01 = No operation
+ ³  ³  ³ ³ ³        10 = Read interrupt request register on next
+ ³  ³  ³ ³ ³                 read at Port 020H/0A0H
+ ³  ³  ³ ³ ³        11 = Read interrupt in-service register on next
+ ³  ³  ³ ³ ³                 read at Port 020H/0A0H
+ ³  ³  ³ ³ ÀÄÄÄÄÄÄ   0 = No Poll command
+ ³  ³  ³ ³           1 =    Poll command
+ ³  ³  ³ ÀÄÄÄÄÄÄÄÄ   1 = Must be 1
+ ³  ³  ÀÄÄÄÄÄÄÄÄÄÄ   0 = Must be 0
+ ³  ÀÄÄÄÄÄÄÄÄÄÄÄÄÄ  00 = No operation
+ ³                  01 = No operation
+ ³                  10 = Reset special Mask
+ ³                  11 = Set special Mask
+ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ   0 = Reserved
+
+
+NOTE: All hardware ports should be manipulated with interrupts masked to
+      prevent them from being put in an unstable state.
+
+
+The following program initializes an AT's 8259 interrupt controllers.
+
+Note:  Only the timer and cascade interrupts are enabled.
+       The interrupt vectors are not set.
+       The hard disk interrupt is not set.
+
+INTINI:   MOV       AL,011H     ; WRITE ICW1 = ICW4 NEEDED, EDGE TRIGGERED
+          OUT       0A0H,AL     ;              IRQ 8 BYTES, CASCADE MODE
+          CHIPDELAY 2
+          OUT       020H,AL     ; WRITE ICW1 = SAME AS ABOVE
+          CHIPDELAY 2
+          MOV       AL,070H     ; WRITE ICW2 = BASE IRQ ADDRESS = 070H
+          OUT       0A1H,AL
+          CHIPDELAY 2
+          MOV       AL,08H      ; WRITE ICW2 = BASE IRQ ADDRESS = 008H
+          OUT       021H,AL
+          CHIPDELAY 2
+          MOV       AL,002H     ; WRITE ICW3 = IS SLAVED TO MASTER INT 2
+          OUT       0A1H,AL
+          CHIPDELAY 2
+          MOV       AL,004H     ; WRITE ICW3 = INT 2 HAS SLAVE
+          OUT       021H,AL
+          CHIPDELAY 2
+          MOV       AL,010H     ; WRITE ICW4 = SPECIAL FULLY NESTED MODE
+          OUT       0A1H,AL     ;              NON-BUFFERED, NORMAL EOI, 8085 ?
+          CHIPDELAY 2
+          OUT       021H,AL     ; WRITE ICW4 = SAME AS ABOVE
+          CHIPDELAY 2
+          MOV       AL,0FAH     ; ENABLE CASCADE AND TIMER INTERRUPTS
+          OUT       021H,AL
+          CHIPDELAY 2
+          MOV       AL,0FFH     ; DISABLE ALL INTCTRL2 INTS
+          OUT       0A1H,AL
+          RET
+
+
+
+
+
+IRQ SHARING on ISA bus PC's ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  The following section pertains to ISA bus PC's only.  It does not
+apply to Microchannel PCI, or EISA system bus's.
+
+  In the design of the PC, devices often need to share interrupts.
+For example, only 2 interrupt lines (interrupts 3 and 4), were assigned
+to a potential of 4 serial ports.
+
+  Many problems arise when attempting to share interrupts.  The type
+and severity of these problems depend on how underlying hardware, (both
+on the motherboard and peripherals), and software drivers interact.
+
+  If interrupt sources are edge sensitive, (as they are on the PC),
+sharing interrupts is most difficult.
+
+  In the PC design, the leading edge of the interrupt pulse, arms the
+interrupt controller and the trailing edge of the pulse triggers the
+interrupt.  During the interval between the leading and trailing edge,
+the level of the interrupt line is held high.  If during this period,
+another card attempts to interrupt the CPU with the same interrupt line,
+it will fail, since the second card can not make a low to high
+transition on an interrupt line that is already being held high by the
+first card.
+
+
+    Time ÄÄÄÄÄÄ
+
+       ÚÄÄÄÄ¿          Interrupt pulse from card 1
+       ³    ³
+ÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄ
+       |    |
+       | ÚÄÄÄÄ¿        Interrupt pulse from card 2
+       | ³  | ³
+ÄÄÄÄÄÄÄÄÄÙ  | ÀÄÄÄ
+       | |  | |
+       | ÚÄÄ¿ |        Interrupt pulse seen by interrupt controller
+       | ³  ³ |        TTL grounds better than it pulls high
+ÄÄÄÄÄÄÄÄÄÙ  ÀÄÄÄÄÄ
+       ³ |  | ³
+       ³ |  | ÀÄÄÄÄÄÄÄÄÄ Signal Lost
+       ³ |  |ÄÄÄÄÄÄÄÄÄÄÄ Send Interrupt signal to CPU
+       ³ |ÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Arm interrupt controller
+       ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Signal Lost
+
+
+
+  If the second interrupt source is a serial card it will not able to
+inform the CPU that it is ready to be serviced.  In this case, received
+characters can be lost or interrupt driven output can freeze.
+
+  One solution to this problem would be to have a common driver for all
+devices that share a common interrupt.  When an interrupt occurs, the
+driver would simply need to poll all of the devices for which it is
+responsible and service each device as necessary.
+
+  Unfortunately, this is not a practical solution for applications
+running under DOS, since all DOS applications avoid using DOS and BIOS
+calls for serial I/O and directly manipulate the serial port hardware.
+Since these applications do not call a common device driver, they can
+not share interrupts with other devices.
+
+  If interrupt sources were level sensitive as they are on the PS/2's
+sharing interrupts would be much easier since a shared interrupt will
+continue to be triggered so long as any shared device needs servicing.
+If the CPU were to service only one interrupt source, and and then
+return from the interrupt routine, it would be immediately interrupted
+again due to the fact that other devices are still holding the interrupt
+line high. This characteristic allows separate interrupt drivers to be
+used for each shared device.  This is the interrupt model needed if
+interrupts are to be serviced by applications rather than the operating
+system.
+
+  In this model, each driver would service its own interrupt source, and
+pass control to the next driver if its device did not need service. Only
+one device would be serviced on each interrupt, but due to the nature of
+level sensitive interrupts, the CPU would continue to be interrupted
+until all shared devices are serviced.
+
+
+Source of unreliability   (hardware)
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  The interrupt lines that run the the PC's 8259 Programmable Interrupt
+Controller are typically driven by 125 TTL Tri-state buffers.
+
+  The output stage of these buffers consists of two transistors.  One
+transistor is used to drive the output line high and the other to drive
+it low.  They are wired as shown below...
+
+
+ +5V         GND      +5V         GND
+ ÄÂÄ         ÄÂÄ      ÄÂÄ         ÄÂÄ    ÄÁÄ              ³
+  ³  ³    ÄÁÄ ³        ³ ÄÁÄ    ³  ³     o o             oo
+  ÀÄooÄÂÄo oÄÙ        ÀÄo oÄÂÄooÄÙ     Transistor off  Transistor on
+        ³                    ³
+
+  Output is High       Output is Low
+
+Note: There is never more than one transistor 'on' at any time.
+
+
+  When two interrupt sources share the same IRQ line, there is generally
+no problem as long as no interrupt is generated, and both output lines
+remain the same.  (Figure A. below)
+
+  However, when one card raises its interrupt line to toggle an
+interrupt, it momentarily shorts the IRQ line to ground through its
+connection with the other card.  (TTL components drive low more
+effectively than they drive high).  The output buffers are typically
+robust enough to tolerate this momentary shorting with the internal
+resistance of the output transistors being great enough to limit the
+current in the short circuit.
+
+  In the condition described above, the voltage on the interrupt line is
+not well defined.  It will be determined by the relative resistances
+associated with each output driver.  These resistances are low enough
+that the resistances of the traces on the PCB board, and the resistance
+of the edge connectors can influence the resultant voltage output on the
+IRQ line.
+
+
+Figure A.                               Figure B.
+
+     Interrupt         Interrupt            Interrupt         Interrupt
+      Source            Source               Source            Source
+        A                 B                    A                 B
+
+ +5V         GND   +5V         GND      +5V         GND   +5V         GND
+ ÄÂÄ         ÄÂÄ   ÄÂÄ         ÄÂÄ      ÄÂÄ         ÄÂÄ   ÄÂÄ         ÄÂÄ
+  ³  ³    ÄÁÄ ³     ³  ³    ÄÁÄ ³        ³  ³    ÄÁÄ ³     ³ ÄÁÄ    ³  ³
+  ÀÄooÄÂÄo oÄÙ     ÀÄooÄÂÄo oÄÙ        ÀÄooÄÂÄo oÄÙ     ÀÄo oÄÂÄooÄÙ
+        ³                 ³                    ³                 ³
+        ÀÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÙ                    ÀÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÙ
+                 ³                                      ³
+                                                       
+         +5V To 8259 INT                  Interrupt line shorted between
+            controller                  +5V and ground.  Resulting voltage
+                                      highly dependent IRQ line resistances,
+                                         Transistor characteristics, etc.
+                                                Usually it is low.
+
+  If the voltage goes high enough, the interrupt will be recognized by
+the 8259 interrupt controller.  If it does not go high enough, the
+interrupt will not be recognized.
+
+  Since the output voltage depends on the relative characteristics of
+both devices sharing the interrupt, if a device does not seem to be
+generating interrupts properly, it is often possible to "correct" the
+problem by replacing either of the cards.  Even swapping a card with an
+"identical" one can "correct" the problem, due to the slight variations
+which exist in electronic components, manufacturing, and due to the
+cleaning effect of wiping the card edge connector contacts pads across
+the edge connector fingers.
+
+  Some peripherals attempt to limit the interrupt sharing problem by
+keeping their interrupt output high at all times, lowering it, before
+triggering an interrupt, sending a low to high to low pulse to trigger
+the interrupt, and then raising the interrupt voltage again. (Shown
+below)
+
+ Line Level              Line Level
+ÄÄÄÄÄÄÄÄÄÄÄÄ¿   ÚÄÄ¿   ÚÄÄÄÄÄÄÄÄÄÄÄÄ     Interrupt pulse from card 1
+            ³   ³  ³   ³
+            ÀÄÄÄÙ  ÀÄÄÄÙ
+            ³   ³  ³   ³
+            ³   ³  ³   ÀÄÄÄÄÄÄÄÄ 4. Return to line level
+            ³   ³  ÀÄÄÄÄÄÄÄÄÄÄÄÄ 3. Trigger Interrupt
+            ³   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 2. Arm interrupt
+            ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ 1. Line goes low
+                                    (setup for low to high trigger)
+
+  If multiple devices use this technique, they generally avoid the
+ambiguous voltage problem described above.  However, these devices still
+suffer from interrupt collisions as described earlier.
+
+
+Unusual symptoms
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  Consider having a mouse on COM3 and a modem on COM1, where both
+devices are sharing INT 3.  When you first turn the computer on, the
+BIOS initializes both COM ports so that their interrupt lines are
+"tri-stated".  BIOS does not use interrupt driven I/O.
+
+  Loading a serial mouse driver enables the interrupt drivers on one of
+the serial ports.
+
+  Since the alternate serial port still has its interrupts disabled, its
+interrupt output remains "tri-stated" (disconnected), and as a result,
+the mouse will work fine.
+
+  Alternately you can load a terminal program and have it work fine.
+
+  However, attempting to use both serial ports at the same time will
+cause sporadic interrupt collisions. This will cause the mouse to act
+funny, or will cause the terminal to loose characters or both.
+
+  Often even exiting one of the applications will not solve the problem,
+since many applications do not re-tri-state, their UART's IRQ outputs
+when they terminate.
+
+  The problem may even persist after a warm reset, since many machines
+have BIOS code that does not re-tri-state the UART outputs on reset.

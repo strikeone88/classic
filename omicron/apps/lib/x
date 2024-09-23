@@ -1,0 +1,56 @@
+_FlipFrameBuffer:
+    Push    Esi
+    Push    Edi
+    Push    Ebx
+
+    Call    PackRGBBuffer
+    Mov     Eax, 11h
+
+Flip.Fixup:
+    Mov     Esi, 00000000h
+    Mov     Edx, 3CEh
+    Mov     Ebx, 009h
+
+//-------------------------//
+// 3CE                     //
+// AL:11                   //
+// AH:BANK                 //
+//-------------------------//
+
+Flip.Cicle:
+    Out     Dx, Ax
+    Mov     Edi, 0A0000h
+    Mov     Ecx, 2000h
+    Add     Ax, 100h
+
+Flip.InnerLoopA:
+    MovQ    MM0, [Esi]
+    Add     Esi, 08h
+    MovQ    [Edi], MM0
+    Add     Edi, 08h
+    Dec     Ecx
+    Jnz     Flip.InnerLoopA
+
+    Dec     Ebx
+    Jnz     Flip.Cicle
+
+    Out     Dx, Ax
+    Mov     Edi, 0A0000h
+    Mov     Ecx, 0C00h
+    Add     Ax, 100h
+
+Flip.InnerLoopB:
+    MovQ    MM0, [Esi]
+    Add     Esi, 08h
+    MovQ    [Edi], MM0
+    Add     Edi, 08h
+    Dec     Ecx
+    Jnz     Flip.InnerLoopB
+
+    Emms
+
+    Pop     Ebx
+    Pop     Edi
+    Pop     Esi
+
+    Ret

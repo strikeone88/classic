@@ -1,0 +1,2 @@
+MAKE.BAS
+..\BMP24.BAS

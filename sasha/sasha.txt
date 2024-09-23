@@ -1,0 +1,543 @@
+
+    SASHA.TXT
+
+    RedStar Sasha Version 0.01 File System Specification
+
+    Last Update: Jan 25 2008 - Friday
+
+    Copyright (C) 2004 - 2008 RedStar Technologies
+    Written and Designed by J. Palencia (ilina@bloodykisses.zzn.com)
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Contents
+
+        1.0 - Introduction
+
+        2.0 - Descriptors
+
+            2.1 - Internal Descriptors
+
+                2.1.1 - System Descriptor (SSDE)
+
+                2.1.2 - Users Table Descriptor (SUTD)
+
+                2.1.3 - Groups Table Descriptor (SGTD)
+
+                2.1.4 - Backup Descriptor (SBKD)
+
+                2.1.5 - Clearance Levels
+
+            2.2 - External Descriptors
+
+                2.2.1 - Directories Descriptor (SDID)
+
+                2.2.2 - Information Descriptor (SIND)
+
+        3.0 - Areas
+
+        4.0 - Trackers
+
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 1.0 - Introduction
+
+    Sasha is a refined version of the never released VNFS, originally the
+    VNFS was designed to fit specific requirements, it was quite good but
+    it had too much in common with FAT and EXT and the implementation was
+    quite difficult.
+
+    On the other hand, Sasha is easier to implement, it has nothing to do
+    with any other file system (as far as I know) and it successfully
+    covers three major design points:
+
+
+        (1) Data Security
+
+        (2) Performance
+
+        (3) and Consistency
+
+
+    Data security refers to how the file system protects the access to
+    certain files, and how it manages the allowed users or groups.
+
+    Performance is one of the most important points, this involves the
+    well balance between the antagonic characters, speed and storage.
+
+    Consistency indicates how reliable the file system is, how it solves
+    fatal errors, how it manages the data, how it remembers where all
+    the files and directories are and how likely it is to suffer fatal
+    errors.
+
+    Security, well, Sasha provides a multiuser/multigroup system that
+    is located IN the file system, this means that Sasha is aware of
+    who can and who can't access the protected areas, this is NOT OS
+    dependant.
+
+    Sasha also provides clearance levels for the objects, this means
+    that even if you have access to an object, if your clearance level
+    is insufficient for it, you'll not be able to fully access it.
+
+    And finally it provides object-level password for all the non-owner
+    users that try to access the file, this means that no matter how
+    high your clearance level is, an strongly-protected file will not be
+    accessed by anyone other than the owner.
+
+    Performance, for storage performance, Sasha is capable of reducing
+    the external fragmentation to zero, yeah, Sasha doesn't waste any
+    sector of the disk, and the internal fragmentation will never be
+    greater than the length of the sector, that's 512 bytes.
+
+    For speed performance, well, level-based search directories are used
+    to speed up the searches, enhanced dynamic lists for really fast
+    indexing and the trackers that makes use of the other two.
+
+    Consistency in Sasha will be explained in detail later, throughout
+    this document.
+
+    Sasha can handle up to 2 TB (2048 GB) disks, that's a lot of storage
+    space for now, but, if in the future there are disks bigger than that,
+    Sasha will handle them smoothly without extreme modifications to the
+    file system, simply enable the extension capabilities and that's it.
+
+    When the extension capabilities of Sasha are enabled, the allocation
+    addressing is extended to 2^24 Terabytes, and the maximum disk capacity
+    is extended to 2^33 Terabytes, that'll do for another 5000 years.
+
+    The whole design of Sasha consists of the following three incredibly
+    simple and VERY important elements:
+
+    
+        (1) Descriptors
+
+        (2) Areas
+
+        (3) and Trackers
+
+
+    The descriptors will be fully explained in section 2.0, these are
+    used to store (most of time) superficial data of the file system
+    or an object.
+
+    Groups of consecutive sectors that have special meaning to the file
+    system are called "Areas".
+
+    And when the groups are formed by consecutive and non-consecutive
+    sectors, there is a need of a structure to handle those groups fast
+    and smoothly, that structure is called a "Tracker".
+
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.0 - Descriptors
+
+    Descriptors are simple structures that contain data that helps the
+    file system to behave correctly. The descriptors are divided in two
+    categories:
+
+
+        (1) Internal Descriptors
+
+        (2) and External Descriptors
+
+
+    The internal descriptors are always sector-sized (0.5 Kb) and control
+    the critical information of Sasha.
+
+    The external descriptors can have different sizes, and control the
+    information about files and directories.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1 - Internal Descriptors
+
+    There are four internal descriptors in Sasha:
+
+
+        (1) System Descriptor
+
+        (2) Users Table Descriptor
+
+        (3) Groups Table Descriptor
+
+        (4) and Backup Descriptor
+
+
+    The System Descriptor is also known as SSDE and contains the most
+    important information about the layout and behavior of the file
+    system, with the SSDE you can figure out the exact length of some
+    of the other descriptors.
+
+    The Users Table and Groups Table Descriptor or just SUTD and SGTD
+    respectively contain the information about all the users and groups
+    that have access to the file system.
+
+    And finally, the Backup Descriptor or SBKD is where the backups
+    of the internal descriptors are stored, this is very useful when
+    the file system needs to recover from a major failure.
+
+    Each descriptor will be explained in detail in the following
+    sections.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1.1 - System Descriptor (SSDE)
+
+    The system descriptor is where Sasha stores the critical information
+    of the file system.
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Dword   Signature   This is the signature of the system
+                                descriptor, its value must be 0x45445353.
+
+    0x004   Dword   Integrity   WSD of the data below this field, must
+                                be used to confirm stable integrity of
+                                the SSDE.
+
+    0x008   Byte    Encryption  Code of the encryption algorithm that
+                                was used to encode protected fields.
+
+    0x009   Byte    Flags       Indicators of some file system features
+                                the following have been defined:
+
+                                Bit Symbol  Description
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                                7   EXCAPS  Extended Capabilities Enabled
+
+                                            If set, all the fields marked
+                                            as "extension fields" will now
+                                            be enabled for use.
+
+                                6   FSMNT   File System is Mounted
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    0x00A   Dword   DmEntries   Count of entries in the disk map, this
+                                field imposes a limit, Sasha can handle
+                                up to 2 TB disks.
+
+    0x00E   Dword   DmEntriesU  If in the future there are disks bigger
+                                than 2 TB, this field will be the upper
+                                32 bits of the DmEntries qword. This is
+                                an extension field.
+
+    0x012   Dword   DmAddress   Sector address of the disk map.
+
+    0x016   Dword   FrSectors   Count of free sectors, can be calculated
+                                by scanning the disk map.
+
+    0x01A   Dword   FrSectorsU  Extension field, upper 32-bit of FrSectors.
+
+    0x01E   Dword   TSectors    Count of total sectors in the disk.
+
+    0x022   Dword   TSectorsU   Extension field for TSectors.
+
+    0x026   Dword   ResSectors  Count of reserved sectors.
+
+    0x02A   Word    PrivUser1   User index that has access to the
+                                private area.
+
+    0x02C   Word    PrivUser2   Another user index that also has
+                                access to the private area.
+
+    0x02E   Dword   PriAreaLen  Length of the private area in
+                                sectors.
+
+    0x032   Dword   MountT      Time of the last mount of this volume.
+
+    0x036   Dword   DismountT   Time of the last dismount of this
+                                volume.
+
+    0x03A   Dqword  VolName     Name of this volume.
+
+    0x046 380 Bytes MntRecord   Record of the last 38 users that had
+                                access to this volume, the format of
+                                each entry is as follows:
+
+                                Offset  Size    Symbol
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                                0x000   Word    UserIndex
+                                0x002   Dword   StartTime
+                                0x006   Dword   EndTime
+                                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    0x1C2   62 Bytes Reserved   This is a reserved area and must be zero.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    If the integrity of the SSDE has been compromised, you can use the
+    backup descriptor to restore it.
+
+    The following is the list of all the encryption algorithms that are
+    supported by Sasha as of this release:
+
+                Code        Name
+                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                0x00        No Encryption
+                0x01        Mercury
+                0x02        DataFold
+
+                0x03-0xFF   Reserved
+                컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    As you can see, that is a small list, you can help to expand it by
+    sending you encryption algos to zipox@ureach.com, note that there
+    are some rules described in section AVRIL.
+
+    In the format you can see some fields related to "User Id" or the
+    "Group Id", these ids are assigned by the OS using the user table
+    descriptor, note that the SUTD imposes that id zero means none.
+
+    The private area is reserved for the user/group that has access to
+    it, the field "PriAreaLen" just describes the length of this area,
+    the actual control of this area is done using the disk map. This
+    area prevents other users from allocating the sectors marked as
+    private, this way even if the other users make a mess in the disk
+    the private area will remain intact for the user that access it.
+
+    The FSMNT bit of the flags is used to indicate the actual state
+    of the file system, this bit is set when the file system is
+    mounted and cleared when it is dismounted. If you try to mount
+    the volume and this bit is set that means that the file system
+    wasn't dismounted the last time it was mounted.
+
+    There are a few fields that refer to "Time", that is, the count of
+    MINUTES elapsed since 1st Jan 1980, note that this base time can be
+    changed in the future to avoid overflow, since all the time fields
+    are 32-bit unsigned integers, you'll need to change the base time
+    in about 8000 years (chiz!).
+
+    The MntRecord array is really useful to have a record of the
+    last 38 users that had access to the system, this array must
+    be read-only to EVERYONE except to the OS who is supposed to
+    update this array.
+
+    There is a field named ResSectors that describes the count of
+    reserved sectors, that's called the reserved area and there is
+    where the internal file system data is stored, things such as
+    the descriptors, the disk map, the user/group table, etc.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1.2 - Users Table Descriptor (SUTD)
+
+    This descriptor contains information about the table that has all
+    the information about the users that can access the file system.
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Dword   Signature   This is the signature of the descriptor,
+                                the value MUST be 0x44545553.
+
+    0x004   Dword   Integrity   WSD of the data below this field, used
+                                to confirm stable integrity.
+
+    0x008   Dword   TableStart  Sector address within the reserved area
+                                of the start of the table.
+
+    0x00C   Dword   TableLen    Length of the table in sectors.
+
+    0x010   Dword   Grabbed     Count of consecutive sectors that were
+                                allocated for this table.
+
+    0x014   Dword   FreeEntry   Index of the next free entry.*
+
+    0x01B   Dword   DeadEntry   Index of the next dead entry.*
+
+    0x01F   484 Bytes           Reserved for future use.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                        * The entry index zero is reserved to denote NULL.
+
+    FreeEntry indicates the index of the next entry that is free, once
+    the system uses this entry it should update this field to point to
+    the proper index, if there aren't any entries left the value must
+    be set to zero.
+
+    The DeadEntry is the index of the first element of the dead list,
+    the dead list is a directed linked list that contains all the
+    entries that have been deleted, this entries can be recycled to
+    avoid wasting storage space.
+
+    TableStart denotes the first sector of the users table, note that all
+    the TableLen sectors are continuous. Each sector of the users table
+    has the following format:
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Word    Signature   This is the signature of the table sector,
+                                the value MUST be 0x5455.
+
+    0x002   Dword   Integrity   WSD of the data below this field, used
+                                to confirm stable integrity.
+
+    0x006   Word    Reserved    Reserved field, must be zero.
+
+    0x008 484 bytes UsrEntries  Contains eleven (11) user entries.
+
+    0x1EC 20 bytes  Reserved    Must be zero.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Each user entry has two possible formats, one is when the entry is
+    being used, and the other when the entry is dead, both formats are
+    described below.
+
+    Note that if there are some dead entries, they will be linked to
+    the dead-list whose top element is pointed to by the DeadEntry
+    field of the SUTD.
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Byte    Flags       D7      Node is Alive (1)
+                                D6-0    Clearance Level
+
+    0x001   Byte    Reserved    Reserved for future use.
+
+    0x002   Qfword  UserLogin   Name of the user login.
+
+    0x01A   Dqword  Keyword     Keyword of the user, encoded using MD5.
+
+    0x02A   Word    HostGroup   Index of the group that hosts this user.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Byte    Flags       D7      Node is Dead (0)
+
+    0x001   Byte    Reserved    Reserved for future use.
+
+    0x002   Word    NextDead    Index of the next dead entry, set to
+                                zero if no dead entries are left.
+
+    0x004   40 Bytes            Not used, they were part of the body of
+                                the entry when it was alive, now it's
+                                just a rotten corpse.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    The clearance level will be discused in section 2.1.5.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1.3 - Groups Table Descriptor (SGTD)
+
+    This descriptor contains information about the table that has all
+    the information about the groups that can access the file system.
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Dword   Signature   This is the signature of the descriptor,
+                                the value MUST be 0x44544753.
+
+    0x004   Dword   Integrity   WSD of the data below this field, used
+                                to confirm stable integrity.
+
+    0x008   Dword   TableStart  Sector address within the reserved area
+                                of the start of the table.
+
+    0x00C   Dword   TableLen    Length of the table in sectors.
+
+    0x010   Dword   Grabbed     Count of consecutive sectors that were
+                                allocated for this table.
+
+    0x014   Dword   FreeEntry   Index of the next free entry.*
+
+    0x01B   Dword   DeadEntry   Index of the next dead entry.*
+
+    0x01F   484 Bytes           Reserved for future use.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+                        * The entry index zero is reserved to denote NULL.
+
+    As you can see, this structure is identical to the SUTD, the only
+    difference is the signature, each field is used for the exact same
+    thing it was used in the SUTD.
+
+    Each sector of the groups table has the following format:
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Word    Signature   This is the signature of the table sector,
+                                the value MUST be 0x5447.
+
+    0x002   Dword   Integrity   WSD of the data below this field, used
+                                to confirm stable integrity.
+
+    0x006   Qfword  GroupName   Name of the group.
+
+    0x01E   Byte    Reserved    Reserved field, must be zero.
+
+    0x01F   Byte    EntryCount  Count of entries in this sector.
+
+    0x020   Word    Supervisor  The user index of the supervisor of
+                                this group.
+
+    0x022 239 Words Members     User index of each member.
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    When I say "user index" or "group index" I'm refering to an unsigned
+    16-bit value whose 15-th bit indicates if the index refers to a group
+    or to a user (when one refers to user). The remaining bits are the
+    actual index to be used within either a group table or a user table.
+
+    If the supervisor of a group is another group then any member of that
+    group can act as the supervisor of the other group.
+
+    Either the user-index or the group-index is composed of two parts,
+    the indicator and the actual index this means that you can have up
+    to 32767 users (or groups), note that index ZERO is always reserved
+    and should not be used. This doesn't mean that on the tables the 1st
+    entry will be wasted, it IS used but everytime you have to work with
+    indices you must increment it to force it to start at one.
+
+    You can have multiple sectors that reference to the same group, the
+    action to take is to append the other users.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1.4 - Backup Descriptor (SBKD)
+
+    The backup descriptors are used only to store some information about
+    the internal descriptors that were saved. This information includes
+    date and time of the backup, length of the area that was saved and
+    position of the original area. Right after the SBKD there will be
+    a determined number of sectors that are the sectors that were saved,
+    to know how many sectors are simple read the field "Sectors" of the
+    following structure:
+
+    Offset  Size    Symbol      Description
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+    0x000   Dword   Signature   This is the signature of the descriptor,
+                                the value MUST be 0x444B4253.
+
+    0x004   Dword   Integrity   WSD of the data below this field, used
+                                to confirm stable integrity.
+
+    0x008   Dword   TimeStamp   Time when this backup has made.
+
+    0x00C   Dword   Start       Original address of the first sector
+                                that was saved.
+
+    0x010   Dword   Sectors     Count of sectors that were saved.
+
+    0x014 492 Bytes Reserved    Reserved for future use (must be zero).
+    컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+    Note that this descriptor is NOT on a fixed position, there can be
+    as many SBKDs as the reserved area can hold, the way the file system
+    engine allocates them is implementation dependant.
+
+
+ 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+ 2.1.5 - Clearance Levels
+
+    .
+    .
+
+-----------------------------------------------------------------------------
+FIX THE AVRILS
+DESTROY MD5?
+CHECK THE OFFSETS
+WHAT THE HELL IS WSD?
+
+<---Reserved Area---><--Disk Map Area--><----Private Area---><--Data Area-->
+!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@#####################$$$$$$$$$$$$$$$

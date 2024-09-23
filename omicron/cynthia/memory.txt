@@ -1,0 +1,15 @@
+
+    000000-07FFFF   Reserved
+
+    080000-08FFFF   Reserved for DMA Channel-1
+
+    090000-097FFF   Temporal Real Mode Area (8 Pages)
+    098000-099FFF   V86 Stack (2 Pages)
+    09A000-09BFFF   Cynthia Stack (2 Pages)
+    09C000-09FFFF   Real Mode Code 4096 DoubleWords
+   *09C000-09C003*  V86 Interrupt Execution (1 DoubleWord)
+
+    0A0000-0FFFFF   Reserved
+
+    100000-17FFFF   Cynthia Core
+    180000-1FFFFF   Client
