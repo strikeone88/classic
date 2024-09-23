@@ -14,3 +14,22 @@ Before thee, a collection of my old experiments, nice crazy code from way back a
 Memories of endless nights of coding on MS-DOS using [edit.com](https://en.wikipedia.org/wiki/MS-DOS_Editor), torturing myself by refusing to use any GUI and using [floppy discs](https://en.wikipedia.org/wiki/Floppy_disk) to download a bunch of text files with juicy information each week when I had the privilege my dad and mom let me go to a internet café. Which btw, never had any coffee!
 
 Enjoy (at your own risk)!
+
+## Index
+
+- *Cynthia*: Flat-Mode Platform's Initializer Version
+- *Ozyara*: Assembler (yeah, an ASSEMBLER tool, you heard right)
+- *Vanessa*: Linker (bff with ozyara!)
+- *Omicron*: 32-bit flat-mode OS from scratch (very basic tho!)
+- *Sasha*: File System Specification (along with VNFS)
+- *RP*: Package Utility (I still use this to pack my stuff)
+- *Angela*: Encryption algorithm
+- *Kelly*: Mini Graphics Engine
+
+<br/>
+
+- *Wob2*: A mini game about pushing stuff.
+- *GFrac*: Generic Fraction Manipulation Library
+- *GInt*: Generic Integer Manipulation Library
+- *Kalissa*: Document Formatter (can't find any KS example files yet)
+- *Trillian*: Virtual Address Space Engine (a bit dumb approach but quite useful back then!)

@@ -1,0 +1,16 @@
+0.00    0.00    0.00    1.00    x  = x'
+-dydx   1.00    0.00    dydx    y  = y + dydx(x' - x)
+-dzdx   0.00    1.00    dzdx    z  = z + dzdx(x' - x)
+1.00    0.00    0.00    0.00    x' = x
+
+1.00    -dxdy   0.00    dxdy    x  = x + dxdy(y' - y)
+0.00    0.00    0.00    1.00    y  = y'
+0.00    -dzdy   1.00    dzdy    z  = z + dzdy(y' - y)
+0.00    1.00    0.00    0.00    y' = y
+
+1.00    0.00    -dxdz   dxdz    x  = x + dxdz(z' - z)
+0.00    1.00    -dydz   dydz    y  = y + dydz(z' - z)
+0.00    0.00    0.00    1.00    z  = z'
+0.00    0.00    1.00    0.00    z' = z
+
+(*) In case of dudv with dv=0 then dudv=0.

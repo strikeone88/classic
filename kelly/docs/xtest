@@ -1,0 +1,247 @@
+
+    #include <picture.h>
+    #include <math.h>
+    #include <k3d.h>
+
+    gInt Data [] =
+    {
+        45 + 4,
+
+        -64,-64,0, -64,+64,0, RGB(0,255,0),
+        +64,-64,0, +64,+64,0, RGB(0,255,0),
+        -64,-64,0, +64,-64,0, RGB(0,255,0),
+        -64,+64,0, +64,+64,0, RGB(0,255,0),
+
+        -157,22,39,-157,-18,39,RGB(128,128,128),
+        -157,-18,39,-127,-38,39,RGB(128,128,128),
+        -127,-38,39,113,-38,39,RGB(128,128,128),
+        113,-38,39,193,12,39,RGB(128,128,128),
+        33,42,39,33,42,-56,RGB(64,64,64),
+        33,42,-56,-127,42,-56,RGB(64,64,64),
+        -127,42,-56,-157,22,-56,RGB(64,64,64),
+        -157,22,-56,-157,22,39,RGB(64,64,64),
+        -157,22,-56,-157,-18,-56,RGB(128,128,128),
+        -157,-18,-56,-157,-18,39,RGB(128,128,128),
+        -157,-18,-56,-127,-38,-56,RGB(128,128,128),
+        -127,-38,-56,-127,-38,39,RGB(128,128,128),
+        -127,-38,-56,113,-38,-56,RGB(128,128,128),
+        113,-38,-56,113,-38,39,RGB(128,128,128),
+        113,-38,-56,193,12,-56,RGB(128,128,128),
+        193,12,-56,193,12,39,RGB(64,64,64),
+        -157,22,-56,193,12,-56,RGB(64,64,64),
+        193,12,39,-157,22,39,RGB(64,64,64),
+        -56,-13,41,-56,-3,41,RGB(255,0,0),
+        -56,-3,41,-26,-3,41,RGB(64,64,128),
+        -26,-3,41,-26,7,41,RGB(128,0,0),
+        -51,7,41,-31,-13,41,RGB(64,64,0),
+        -11,-13,41,-11,-3,41,RGB(64,64,128),
+        -11,-3,41,-1,7,41,RGB(128,64,0),
+        9,7,41,9,-8,41,RGB(64,64,0),
+        9,-8,41,24,-8,41,RGB(255,64,0),
+        34,16,41,34,-38,41,RGB(128,128,128),
+        33,-39,41,33,-39,-53,RGB(128,128,128),
+        33,-39,-53,33,15,-53,RGB(128,128,128),
+        -42,-38,19,-72,-38,19,RGB(255,0,0),
+        -72,-38,19,-72,-38,-41,RGB(255,0,0),
+        -72,-38,-41,-42,-38,-41,RGB(255,0,0),
+        -42,-38,-41,-42,-38,19,RGB(255,0,0),
+        33,42,39,34,16,41,RGB(64,64,64),
+        33,42,-56,33,15,-53,RGB(64,64,64),
+        -157,22,39,-127,42,39,RGB(64,64,64),
+        -127,42,-56,-127,42,39,RGB(64,64,64),
+        -127,42,39,33,42,39,RGB(64,64,64),
+        159,-8,-56,159,-8,40,RGB(0,0,255),
+        143,-18,-56,143,-18,39,RGB(0,0,255),
+        193,12,39,193,32,30,RGB(64,64,64),
+        33,42,39,193,32,30,RGB(64,64,64),
+        193,32,30,193,32,-47,RGB(64,64,64),
+        33,42,-56,193,32,-47,RGB(64,64,64),
+        193,12,-56,193,32,-47,RGB(64,64,64),
+    };
+
+    gFloat Vect [] = { -157,22,39,1 };
+
+    void Quad (Px1, Py1, Pz1, Qx1, Qy1, Qz1, Px2, Py2, Pz2, Qx2, Qy2, Qz2)
+    gFloat Px1, Py1, Pz1, Qx1, Qy1, Qz1, Px2, Py2, Pz2, Qx2, Qy2, Qz2;
+    {
+        float Px, Py, Pz, Qx, Qy, Qz, t;
+
+            for (t = 0; t < 1.0; t += 0.01)
+            {
+                Px = Px2*t + (1-t)*Px1;
+                Qx = Qx2*t + (1-t)*Qx1;
+
+                Py = Py2*t + (1-t)*Py1;
+                Qy = Qy2*t + (1-t)*Qy1;
+
+                Pz = Pz2*t + (1-t)*Pz1;
+                Qz = Qz2*t + (1-t)*Qz1;
+
+                gVertex3f (Px, Py, Pz);
+                gVertex3f (Qx, Qy, Qz);
+            }
+    }
+
+    #include <dpmi.h>
+    void GetMouseCoords (gFloat *x, gFloat *y, gInt *b)
+    {
+        DPMI_REGS Regs;
+
+            Regs.h.ax = 0x0003;
+            Regs.h.ss = 0x0000;
+            Regs.h.sp = 0x0000;
+
+            dpmi_simulate_real_interrupt (0x33, &Regs);
+
+            *x = (Regs.h.cx - ((ScreenWidth - 1) / 2)) / (gFloat)ScreenWidth;
+            *y = (Regs.h.dx - ((ScreenHeight - 1) / 2)) / (gFloat)ScreenHeight;
+            *b = Regs.h.bx;
+    }
+
+    void main (void)
+    {
+        gObject *Object;
+        gFloat t, x, y, z, *M;
+        int i, j, u, v, g, f = 0, k = 0, p = 0;
+
+            gStart ();
+
+#if 0
+gMatrixMode (PROJECTION_MATRIX);
+/*
+gLoadIdentity ();
+gOrtho (-1000, 1000, -1000, 1000, -1000, 1000);
+gPerspective (M_PI_2, 1, 0, 1);
+*/
+
+M = gGetMatrix (0);
+
+printf ("%10f %10f %10f %10f\n", M[0], M[1], M[2], M[3]);
+printf ("%10f %10f %10f %10f\n", M[4], M[5], M[6], M[7]);
+printf ("%10f %10f %10f %10f\n", M[8], M[9], M[10], M[11]);
+printf ("%10f %10f %10f %10f\n", M[12], M[13], M[14], M[15]);
+
+gStop ();
+return;
+#endif
+
+#if 0
+            gBeginObjectDef (POINT_OBJECT);
+
+            for (j = 0; j < 200; j+=1)
+            {
+                for (i = 0; i < 200; i+=1)
+                {
+                    gVertex3f (i-100, j-100, 0);
+
+                    gVertexColor (
+                    RGB
+                    (
+                        (i/200.0)*255,
+                        (j/200.0)*255,
+                        0
+                    )
+                    );
+
+                    p++;
+                }
+            }
+#else
+            #if 1
+                gBeginObjectDef (LINE_OBJECT);
+
+                u = Data [(v = 1) - 1];
+    
+                while (u--)
+                {
+                    gVertexColor (Data [v+6]);
+                    gVertex3f (Data[v], Data[v+1], Data[v+2]);
+
+                    gVertexColor (Data [v+6]);
+                    gVertex3f (Data[v+3], Data[v+4], Data[v+5]);
+
+                    v += 7;
+                    p += 2;
+                }
+
+            #else
+                gBeginObjectDef (LINE_OBJECT);
+
+                gVertexColor (RGB (255, 0, 0));
+                Quad (
+                        -10, -10, -10,
+                        -10, +10, -10,
+
+                        +10, -10, -10,
+                        +10, +10, -10,
+                    );
+
+                gVertexColor (RGB (128, 0, 0));
+                Quad (
+                        -10, -10, +10,
+                        -10, +10, +10,
+
+                        +10, -10, +10,
+                        +10, +10, +10,
+                    );
+
+                gVertexColor (RGB (0, 255, 0));
+                Quad (
+                        -10, -10, -10,
+                        -10, +10, -10,
+
+                        -10, -10, +10,
+                        -10, +10, +10,
+                    );
+
+                gVertexColor (RGB (0, 128, 0));
+                Quad (
+                        +10, -10, -10,
+                        +10, +10, -10,
+
+                        +10, -10, +10,
+                        +10, +10, +10,
+                    );
+
+            #endif
+#endif
+
+            Object = gEndObjectDef ();
+
+            gMatrixMode (MODELVIEW_MATRIX);
+
+j=clock();
+            g = 0;
+
+            //for (t = 0; t < 10*6.28 && !kbhit (); t += 0.04)
+            while (!kbhit ())
+            {
+                GetMouseCoords (&x, &y, &i);
+
+                if (i == 1)
+                    g -= 10;
+                else
+                    if (i == 2)
+                        g += 10;
+
+                gLoadIdentity ();
+                gRotatef (x * 6.28, Y_AXIS);
+                gRotatef (y * 6.28, X_AXIS);
+                gTranslatef (0, 0, g);
+                gRenderObject (Object);
+
+                gFlip ();
+                gClear (COLOR_BUFFER);
+
+                k += p;
+
+                f++;
+            }
+j=clock()-j;
+            getch ();
+            gStop ();
+printf("%u ms, %f Mp, %u frames : %f Mps, %f fps",
+    j, k/1E6, f, k/(j*1E3), f / (j/1E3));
+    }
+
+    void pmsg () {}

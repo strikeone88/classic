@@ -1,0 +1,26 @@
+Someday optimize kgfx to support linear frame buffers.
+Change the INT10 calls for DPMI calls.
+
+If when the engine is finished the Alpha value is still unused, optimize
+kgfx to avoid writes and reads of alpha channel.
+
+-------------------------------------------------------------------
+LineObject: Clipping stuff is not optimized.
+gPerspective
+gFrustrum
+
+make ClearColorBuffer work only with the viewport?
+Z-buffering?
+When using LINE_OBJECT interpolate between color values?
+
+Add accumulation buffer schemes.
+Camera!!!!!!!
+
+Make EVERYTHING homogeneous so that no conversion from-to FP/INT is needed.
+
+Clean UP!!!!!!!!!
+
+
+
+The triangle converter is a bit buggy, you should get the book and see the
+things I wrote there to fix everything.

@@ -1,0 +1,10 @@
+xx(1-c)+c	xy(1-c)-zs	xz(1-c)+ys
+yx(1-c)+zs	yy(1-c)+c	yz(1-c)-xs
+zx(1-c)-ys	zy(1-c)+xs	zz(1-c)+c
+
+S:
+0       z       -y
+-z      0       x
+y       -x      0
+
+(u.uT)(1 - à) + (S)(á) + I(à)
