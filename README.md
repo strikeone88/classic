@@ -17,8 +17,8 @@ Enjoy (at your own risk)!
 
 ## Index
 
-- *Cynthia*: Flat-Mode Platform's Initializer Version
-- *Ozyara*: Assembler (yeah, an ASSEMBLER tool, you heard right)
+- *Cynthia*: 32-bit Flat mode platform initializer
+- *Ozyara*: Assembler (yeah, an ASSEMBLER tool, you read right)
 - *Vanessa*: Linker (bff with ozyara!)
 - *Omicron*: 32-bit flat-mode OS from scratch (very basic tho!)
 - *Sasha*: File System Specification (along with VNFS)
